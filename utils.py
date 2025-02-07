@@ -96,6 +96,16 @@ def setup_shape_key_driver(armature, bone_name, shape_key, transform_type, multi
         else:  # SCALE
             driver.expression = f"(bone_transform - 1.0) * {multiplier}"
         
+        # 드라이버 설정 후 Basis 쉐이프키 선택
+        mesh_obj = None
+        for obj in bpy.data.objects:
+            if obj.type == 'MESH' and obj.data.shape_keys == shape_key.id_data:
+                mesh_obj = obj
+                break
+                
+        if mesh_obj:
+            mesh_obj.active_shape_key_index = 0  # Basis 선택
+        
         return True, ""
         
     except Exception as e:
@@ -342,3 +352,54 @@ def create_shape_key_text_widget(context, text_name, text_body, bone=None):
 
     except Exception as e:
         return None, str(e)
+    
+def get_meshes_with_drivers(self, context):
+    """드라이버가 있는 메쉬 목록 생성"""
+    items = []
+    
+    # 본 이름 가져오기
+    if context.mode == 'EDIT_ARMATURE':
+        bone_name = context.active_bone.name
+    else:  # POSE
+        bone_name = context.active_pose_bone.name
+    
+    # 드라이버가 있는 메쉬 검색
+    for obj in context.scene.objects:
+        if obj.type == 'MESH' and obj.data.shape_keys and obj.data.shape_keys.animation_data:
+            has_driver = False
+            for driver in obj.data.shape_keys.animation_data.drivers:
+                for var in driver.driver.variables:
+                    if (var.type == 'TRANSFORMS' and 
+                        var.targets[0].bone_target == bone_name):
+                        has_driver = True
+                        break
+                if has_driver:
+                    items.append((obj.name, obj.name, ""))
+                    break
+    
+    return items
+
+def get_shape_key_drivers(self, context):
+    """선택된 메쉬의 모든 쉐이프 키 드라이버 목록 생성"""
+    items = []
+    
+    if not hasattr(self, 'target_mesh') or not self.target_mesh:
+        return items
+
+    # 선택된 메쉬의 드라이버 검사
+    obj = bpy.data.objects.get(self.target_mesh)
+    if obj and obj.data.shape_keys and obj.data.shape_keys.animation_data:
+        shape_keys = obj.data.shape_keys
+        
+        # 모든 드라이버 순회
+        for driver in shape_keys.animation_data.drivers:
+            # 쉐이프 키 이름 추출
+            try:
+                # 드라이버 데이터 경로에서 쉐이프 키 이름 추출
+                # 예: 'key_blocks["name"].value' -> 'name'
+                shape_key_name = driver.data_path.split('"')[1]
+                items.append((shape_key_name, shape_key_name, ""))
+            except:
+                continue
+    
+    return items

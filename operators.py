@@ -833,6 +833,227 @@ def transform_handler(scene):
             
     except Exception as e:
         print(f"Error in transform handler: {str(e)}")
+        
+class EDIT_OT_delete_shape_key_bone(Operator):
+    """Delete shape key bone and related objects"""
+    bl_idname = "edit.delete_shape_key_bone"
+    bl_label = "Delete Shape Key Bone"
+    bl_description = "Delete selected bone from both rigs and its shape collection"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def remove_selected_drivers(self, context, bone_name):
+        """선택된 드라이버 제거"""
+        removed_count = 0
+        selected_driver = self.shape_key_drivers
+
+        obj = bpy.data.objects.get(self.target_mesh)
+        if obj and obj.data.shape_keys and obj.data.shape_keys.animation_data:
+            shape_keys = obj.data.shape_keys
+            
+            # 선택된 쉐이프 키의 드라이버 제거
+            data_path = f'key_blocks["{selected_driver}"].value'
+            try:
+                # 드라이버 제거
+                shape_keys.driver_remove(data_path)
+                removed_count += 1
+                
+                # Basis 쉐이프키 선택
+                obj.active_shape_key_index = 0
+                        
+            except:
+                pass
+                        
+        return removed_count
+
+    delete_collection: BoolProperty(
+        name="Delete Widget Collection",
+        description="Delete associated widget collection",
+        default=True
+    ) # type: ignore
+
+    widget_collection: EnumProperty(
+        name="Widget Collection",
+        description="Select widget collection to delete",
+        items=lambda self, context: [
+            (col.name, col.name, "")
+            for col in bpy.data.collections.get("Widgets", {}).children
+        ] if self.delete_collection else []
+    ) # type: ignore
+
+    delete_drivers: BoolProperty(
+        name="Delete Shape Key Drivers",
+        description="Delete associated shape key drivers",
+        default=True
+    ) # type: ignore
+
+    target_mesh: EnumProperty(
+        name="Target Mesh",
+        description="Select mesh containing shape key drivers",
+        items=lambda self, context: utils.get_meshes_with_drivers(self, context)
+    ) # type: ignore
+
+    shape_key_drivers: EnumProperty(
+        name="Shape Key Drivers",
+        description="Select shape key drivers to delete",
+        items=lambda self, context: utils.get_shape_key_drivers(self, context)
+    ) # type: ignore
+
+    @classmethod
+    def poll(cls, context):
+        if context.mode not in {'EDIT_ARMATURE', 'POSE'}:
+            return False
+            
+        if not (context.scene.metarig and context.scene.rigify_rig):
+            return False
+            
+        if context.mode == 'EDIT_ARMATURE':
+            return (context.active_bone and 
+                   context.active_object == context.scene.rigify_rig)
+        else:  # POSE
+            return (context.active_pose_bone and 
+                   context.active_object == context.scene.rigify_rig)
+
+    def invoke(self, context, event):
+        # 기본 컬렉션 이름 설정
+        if context.mode == 'EDIT_ARMATURE':
+            bone_name = context.active_bone.name
+        else:  # POSE
+            bone_name = context.active_pose_bone.name
+            
+        # Widgets 컬렉션이 있는지 확인
+        widgets_collection = bpy.data.collections.get("Widgets")
+        if widgets_collection and widgets_collection.children:
+            # WGT_로 시작하는 컬렉션 중에서 본 이름이 포함된 것을 찾기
+            for col in widgets_collection.children:
+                if bone_name in col.name:
+                    self.widget_collection = col.name
+                    break
+        
+        return context.window_manager.invoke_props_dialog(self, width=400)
+
+    def draw(self, context):
+        layout = self.layout
+        
+        # 드라이버 삭제 옵션
+        row = layout.row()
+        row.prop(self, "delete_drivers")
+        
+        # 드라이버 선택 (delete_drivers가 True일 때만)
+        if self.delete_drivers:
+            box = layout.box()
+            box.label(text="Select Drivers to Delete:", icon='DRIVER')
+            
+            # 메쉬 선택
+            box.prop(self, "target_mesh")
+            
+            # 선택된 메쉬의 쉐이프 키 드라이버 선택
+            if self.target_mesh:
+                box.prop(self, "shape_key_drivers")
+        
+        # 컬렉션 삭제 옵션
+        row = layout.row()
+        row.prop(self, "delete_collection")
+        
+        # 컬렉션 선택 (delete_collection이 True일 때만)
+        if self.delete_collection:
+            row = layout.row()
+            row.prop(self, "widget_collection")
+        
+        # 경고 메시지
+        box = layout.box()
+        box.label(text="Warning: This operation cannot be undone!", icon='ERROR')
+        if self.delete_drivers:
+            box.label(text="Selected shape key drivers will be deleted")
+        if self.delete_collection:
+            box.label(text="Selected widget collection will be deleted")
+
+    def execute(self, context):
+        rigify_rig = context.scene.rigify_rig
+        metarig = context.scene.metarig
+        
+        # 현재 선택된 본 이름 가져오기
+        if context.mode == 'EDIT_ARMATURE':
+            bone_name = context.active_bone.name
+        else:  # POSE
+            bone_name = context.active_pose_bone.name
+            
+        try:
+            removed_drivers = 0
+            removed_objects = 0
+
+            # 1. 선택된 드라이버 제거
+            if self.delete_drivers:
+                removed_drivers = self.remove_selected_drivers(context, bone_name)
+            
+            # 2. 선택된 위젯 컬렉션 삭제
+            if self.delete_collection and self.widget_collection:
+                collection = bpy.data.collections.get(self.widget_collection)
+                if collection:
+                    removed_objects = len(collection.objects)
+                    for obj in collection.objects:
+                        bpy.data.objects.remove(obj, do_unlink=True)
+                    bpy.data.collections.remove(collection)
+            
+            # 3. 메타리그의 본 삭제
+            # 메타리그 상태 저장
+            was_hidden = metarig.hide_viewport
+            was_hidden_select = metarig.hide_select
+            was_hidden_get = metarig.hide_get()
+            
+            # 메타리그 활성화
+            metarig.hide_viewport = False
+            metarig.hide_select = False
+            metarig.hide_set(False)
+            
+            # 현재 모드와 선택 상태 저장
+            current_active = context.active_object
+            current_mode = context.mode
+            
+            # 메타리그로 전환
+            bpy.ops.object.mode_set(mode='OBJECT')
+            context.view_layer.objects.active = metarig
+            bpy.ops.object.mode_set(mode='EDIT')
+            
+            # 본 삭제
+            if bone_name in metarig.data.edit_bones:
+                metarig_bone = metarig.data.edit_bones[bone_name]
+                metarig.data.edit_bones.remove(metarig_bone)
+            
+            # 원래 상태로 복원
+            bpy.ops.object.mode_set(mode='OBJECT')
+            context.view_layer.objects.active = current_active
+            if current_mode != 'OBJECT':
+                bpy.ops.object.mode_set(mode=current_mode)
+            
+            # 메타리그 상태 복원
+            metarig.hide_viewport = was_hidden
+            metarig.hide_select = was_hidden_select
+            metarig.hide_set(was_hidden_get)
+            
+            # 4. 리기파이 리그의 본 삭제
+            if context.mode == 'EDIT_ARMATURE':
+                rigify_bone = rigify_rig.data.edit_bones[bone_name]
+                rigify_rig.data.edit_bones.remove(rigify_bone)
+            else:  # POSE
+                # 에딧 모드로 전환하여 본 삭제
+                bpy.ops.object.mode_set(mode='EDIT')
+                rigify_bone = rigify_rig.data.edit_bones[bone_name]
+                rigify_rig.data.edit_bones.remove(rigify_bone)
+                bpy.ops.object.mode_set(mode='POSE')
+            
+            # 결과 메시지 생성
+            message = f"Deleted bone: {bone_name}"
+            if self.delete_drivers and removed_drivers > 0:
+                message += f", {removed_drivers} drivers"
+            if self.delete_collection and removed_objects > 0:
+                message += f", {removed_objects} widget objects"
+            
+            self.report({'INFO'}, message)
+            return {'FINISHED'}
+            
+        except Exception as e:
+            self.report({'ERROR'}, f"Error deleting bone: {str(e)}")
+            return {'CANCELLED'}
 
 classes = (
     OBJECT_OT_text_input_dialog,
@@ -840,5 +1061,6 @@ classes = (
     OBJECT_OT_apply_shape_key_to_bone,
     OBJECT_OT_add_shape_key_bone,
     OBJECT_OT_show_select_mesh_popup,
-    EDIT_OT_sync_metarig_bone,    
+    EDIT_OT_sync_metarig_bone,
+    EDIT_OT_delete_shape_key_bone,
 )

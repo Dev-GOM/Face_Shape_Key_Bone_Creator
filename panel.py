@@ -128,6 +128,23 @@ class SHAPEKEY_PT_tools_creator(Panel):
             row = box.row()
             row.operator("object.add_shape_key_bone", 
                         text="Add Shape Key Bone")
+        
+        # 본 삭제 버튼 (에딧 모드나 포즈 모드에서 리기파이 본이 선택된 경우에만 표시)
+        if context.mode in {'EDIT_ARMATURE', 'POSE'}:
+            is_rigify_bone = False
+            if context.mode == 'EDIT_ARMATURE':
+                is_rigify_bone = (context.active_bone and 
+                                context.active_object == context.scene.rigify_rig)
+            else:  # POSE
+                is_rigify_bone = (context.active_pose_bone and 
+                                context.active_object == context.scene.rigify_rig)
+            
+            if is_rigify_bone:
+                box = layout.box()
+                row = box.row()
+                row.operator("edit.delete_shape_key_bone", 
+                           text="Delete Shape Key Bone", 
+                           icon='TRASH')
 
         # 포즈 모드 체크
         if context.mode == 'POSE':
@@ -258,8 +275,26 @@ class OBJECT_OT_create_shape_key_slider(Operator):
         # 텍스트 내용 결정
         text_content = self.custom_text if self.custom_text else self.shape_key
         
+        # Head 본에 Parent 설정
+        if self.use_head_constraint:
+            rig = context.active_object
+            if "head" in rig.pose.bones:
+                # 현재 모드 저장
+                current_mode = context.mode
+                
+                # Edit 모드로 전환
+                bpy.ops.object.mode_set(mode='EDIT')
+                
+                # Edit Bone의 parent 설정
+                edit_bone = rig.data.edit_bones[bone.name]
+                head_edit_bone = rig.data.edit_bones["head"]
+                edit_bone.parent = head_edit_bone
+                
+                # 원래 모드로 복귀
+                bpy.ops.object.mode_set(mode=current_mode)
+        
         # 위젯 생성
-        widget, error = utils.create_shape_key_text_widget(  # operators를 utils로 변경
+        widget, error = utils.create_shape_key_text_widget(
             context,
             f"WGT_{bone.name}",
             text_content,
@@ -270,9 +305,8 @@ class OBJECT_OT_create_shape_key_slider(Operator):
             self.report({'ERROR'}, f"Failed to create widget: {error}")
             return {'CANCELLED'}
 
-        # Head 본에 Child Of 콘스트레인트 추가
+        # Head 본에 콘스트레인트 추가
         if self.use_head_constraint:
-            rig = context.active_object
             if "head" in rig.pose.bones:
                 head_bone = rig.pose.bones["head"]
                 
@@ -290,7 +324,7 @@ class OBJECT_OT_create_shape_key_slider(Operator):
         mesh_obj = bpy.data.objects[self.target_mesh]
         shape_key_block = mesh_obj.data.shape_keys.key_blocks[self.shape_key]
         
-        success, error = utils.setup_shape_key_driver(  # operators를 utils로 변경
+        success, error = utils.setup_shape_key_driver(
             context.active_object,
             bone.name,
             shape_key_block,
