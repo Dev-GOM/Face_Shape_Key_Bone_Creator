@@ -19,7 +19,7 @@ Shape Key Text Creator is a Blender add-on that helps you visualize and control 
 ## Version History / 버전 기록 / バージョン履歴 / 版本历史
 
 <details>
-<summary style="color: #0366d6; font-size: 1.1em; padding: 8px; cursor: pointer;">📌 v1.1 (2024-02-07)</summary>
+<summary style="color: #0366d6; font-size: 1.1em; padding: 8px; cursor: pointer;">📌 v1.1 (2025-02-08)</summary>
 
 <details>
 <summary style="color: #28a745; padding: 8px 16px;">🇺🇸 English</summary>
@@ -71,7 +71,7 @@ Shape Key Text Creator is a Blender add-on that helps you visualize and control 
 </details>
 
 <details>
-<summary style="color: #0366d6; font-size: 1.1em; padding: 8px; cursor: pointer;">📌 v1.0 (2024-01-15)</summary>
+<summary style="color: #0366d6; font-size: 1.1em; padding: 8px; cursor: pointer;">📌 v1.0 (2025-02-07)</summary>
 
 <details>
 <summary style="color: #28a745; padding: 8px 16px;">🇺🇸 English</summary>
