@@ -44,9 +44,9 @@ def register():
         for module in modules:
             module.register()
         
-        print("Shape Key Text Creator: Registration successful")
+        print("Shape Key Control Creator: Registration successful")
     except Exception as e:
-        print(f"Shape Key Text Creator: Registration failed: {str(e)}")
+        print(f"Shape Key Control Creator: Registration failed: {str(e)}")
 
 def unregister():
     """Unregister all modules and translations / 모든 모듈과 번역 등록 해제"""
@@ -55,9 +55,9 @@ def unregister():
         for module in reversed(modules):
             module.unregister()
         
-        print("Shape Key Text Creator: Unregistration successful")
+        print("Shape Key Control Creator: Unregistration successful")
     except Exception as e:
-        print(f"Shape Key Text Creator: Unregistration failed: {str(e)}")
+        print(f"Shape Key Control Creator: Unregistration failed: {str(e)}")
 
 if __name__ == "__main__":
     register()
