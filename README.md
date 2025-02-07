@@ -1,4 +1,4 @@
-# Face Shape Key Bone Creator
+# Shape Key Bone Control Creator
 
 [English](#english) | [한글](#korean) | [日本語](#japanese) | [中文](#chinese)
 
@@ -13,7 +13,7 @@
 </details>
 
 <a name="english"></a>
-# Shape Key Text Creator
+# Shape Key Bone Control Creator
 
 Shape Key Text Creator is a Blender add-on that visualizes and controls shape keys through text-based sliders.
 
@@ -83,7 +83,7 @@ This program is free software: you can redistribute it and/or modify it under th
 ---
 
 <a name="korean"></a>
-# 쉐이프 키 텍스트 생성기
+# Shape Key Bone Control Creator
 
 쉐이프 키 텍스트 생성기는 Blender 애드온으로, 쉐이프 키를 텍스트 형태의 슬라이더로 시각화하고 조작할 수 있게 해주는 도구입니다.
 
