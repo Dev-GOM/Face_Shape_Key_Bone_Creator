@@ -1,6 +1,7 @@
 import bpy
 import math
 import mathutils
+from . import utils
 from bpy.types import Panel, Operator
 from bpy.props import EnumProperty, StringProperty, BoolProperty, FloatProperty
 
@@ -220,6 +221,12 @@ class OBJECT_OT_create_shape_key_slider(Operator):
         description="Enter custom text for the shape key",
         default=""
     ) # type: ignore
+
+    use_head_constraint: BoolProperty(
+        name="Parent to Head",
+        description="Add Child Of constraint to Rigify head bone",
+        default=False
+    ) # type: ignore
     
     @classmethod
     def poll(cls, context):
@@ -236,6 +243,7 @@ class OBJECT_OT_create_shape_key_slider(Operator):
             layout.prop(self, "shape_key")
             if self.shape_key:
                 layout.prop(self, "custom_text")
+        layout.prop(self, "use_head_constraint")
     
     def execute(self, context):
         if not self.target_mesh or not self.shape_key:
@@ -251,8 +259,7 @@ class OBJECT_OT_create_shape_key_slider(Operator):
         text_content = self.custom_text if self.custom_text else self.shape_key
         
         # 위젯 생성
-        from . import operators
-        widget, error = operators.create_shape_key_text_widget(
+        widget, error = utils.create_shape_key_text_widget(  # operators를 utils로 변경
             context,
             f"WGT_{bone.name}",
             text_content,
@@ -262,17 +269,33 @@ class OBJECT_OT_create_shape_key_slider(Operator):
         if not widget:
             self.report({'ERROR'}, f"Failed to create widget: {error}")
             return {'CANCELLED'}
+
+        # Head 본에 Child Of 콘스트레인트 추가
+        if self.use_head_constraint:
+            rig = context.active_object
+            if "head" in rig.pose.bones:
+                head_bone = rig.pose.bones["head"]
+                
+                # 위젯 컬렉션의 모든 오브젝트에 콘스트레인트 추가
+                widget_collection = widget.users_collection[0]
+                for obj in widget_collection.objects:
+                    constraint = obj.constraints.new('CHILD_OF')
+                    constraint.target = rig
+                    constraint.subtarget = "head"
+                    constraint.use_scale_x = False
+                    constraint.use_scale_y = False
+                    constraint.use_scale_z = False
         
         # 드라이버 설정
         mesh_obj = bpy.data.objects[self.target_mesh]
         shape_key_block = mesh_obj.data.shape_keys.key_blocks[self.shape_key]
         
-        success, error = operators.setup_shape_key_driver(
-            context.active_object,  # 아마추어
+        success, error = utils.setup_shape_key_driver(  # operators를 utils로 변경
+            context.active_object,
             bone.name,
             shape_key_block,
-            'LOC_X',  # 기본값으로 X축 위치 사용
-            4.0  # 기본 영향도
+            'LOC_X',
+            4.0
         )
         
         if not success:
@@ -401,6 +424,41 @@ class OBJECT_OT_assign_shape_key_widget(Operator):
         self.report({'INFO'}, "Widget assigned successfully")
         return {'FINISHED'}
 
+class SHAPEKEY_PT_sync_settings(Panel):
+    """Shape Key Sync Settings Panel"""
+    bl_label = "Shape Key Sync"
+    bl_idname = "SHAPEKEY_PT_sync_settings"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Shape Key Tools'
+
+    @classmethod
+    def poll(cls, context):
+        # 메타리그와 리기파이 리그가 모두 설정되어 있는지 확인
+        return (context.mode == 'EDIT_ARMATURE' and 
+                context.scene.metarig and 
+                context.scene.rigify_rig)
+        
+    def draw(self, context):
+        layout = self.layout
+        
+        # Rigify 본 선택 상태 확인
+        is_rigify_bone = (context.active_bone and 
+                        context.active_object == context.scene.rigify_rig)
+        
+        # 동기화 설정
+        box = layout.box()
+        row = box.row()
+        row.enabled = is_rigify_bone
+        row.prop(context.scene, "is_sync_enabled", text="Enable Auto Sync")
+        
+        row = box.row()
+        row.operator("edit.sync_metarig_bone", text="Sync Now")
+        
+        # 상태 메시지 표시
+        if not is_rigify_bone:
+            box.label(text="Select a Rigify bone in Edit mode", icon='INFO')
+
 classes = (
     OBJECT_OT_recreate_slider_templates,
     SHAPEKEY_PT_tools_creator,
@@ -408,59 +466,5 @@ classes = (
     OBJECT_OT_find_rigify,
     OBJECT_OT_create_shape_key_slider,
     OBJECT_OT_assign_shape_key_widget,
+    SHAPEKEY_PT_sync_settings,
 )
-
-def register():
-    for cls in classes:
-        try:
-            bpy.utils.register_class(cls)
-        except Exception as e:
-            print(f"Failed to register {cls.__name__}: {str(e)}")
-    
-    bpy.types.Scene.metarig = bpy.props.PointerProperty(
-        type=bpy.types.Object,
-        name="Meta-Rig",
-        description="Metarig armature for creating shape key controls",
-        poll=lambda self, obj: obj.type == 'ARMATURE'
-    )
-
-    bpy.types.Scene.rigify_rig = bpy.props.PointerProperty(
-        type=bpy.types.Object,
-        name="Rigify Rig",
-        description="Rigify rig for connecting shape key drivers",
-        poll=lambda self, obj: obj.type == 'ARMATURE'
-    )
-
-    bpy.types.WindowManager.show_shape_keys = bpy.props.BoolProperty(
-        name="Show Shape Keys",
-        description="Show available shape keys",
-        default=False
-    )
-    
-    bpy.types.Scene.widget_collection = bpy.props.PointerProperty(
-        type=bpy.types.Collection,
-        name="Widget Collection",
-        description="Select collection containing widget objects",
-        poll=lambda self, obj: obj.name.startswith('WGT_')
-    )
-    
-    bpy.types.Scene.target_pose_bone = bpy.props.StringProperty(
-        name="Target Bone",
-        description="Select bone to assign the widget",
-    )
-
-def unregister():
-    for cls in reversed(classes):
-        try:
-            bpy.utils.unregister_class(cls)
-        except Exception as e:
-            print(f"Failed to unregister {cls.__name__}: {str(e)}")
-    
-    del bpy.types.Scene.metarig
-    del bpy.types.Scene.rigify_rig
-    del bpy.types.WindowManager.show_shape_keys
-    del bpy.types.Scene.widget_collection
-    del bpy.types.Scene.target_pose_bone
-
-if __name__ == "__main__":
-    register()

@@ -26,36 +26,110 @@ bl_info = {
 }
 
 import bpy
-import os
 from . import translations
 from . import operators
 from . import panel
 
-modules = (
-    translations,
-    operators,
-    panel,
-)
-
 def register():
-    """Register all modules and translations / 모든 모듈과 번역 등록"""
+    """Register all modules and translations"""
     try:
-        # Register modules / 모듈 등록
-        for module in modules:
-            module.register()
+        # Register translations
+        translations.register()
+        
+        # Register classes
+        for cls in operators.classes:
+            try:
+                bpy.utils.register_class(cls)
+            except Exception as e:
+                print(f"Failed to register {cls.__name__}: {str(e)}")
+                
+        for cls in panel.classes:
+            try:
+                bpy.utils.register_class(cls)
+            except Exception as e:
+                print(f"Failed to register {cls.__name__}: {str(e)}")
+        
+        # Register properties
+        bpy.types.Scene.metarig = bpy.props.PointerProperty(
+            type=bpy.types.Object,
+            name="Meta-Rig",
+            description="Metarig armature for creating shape key controls",
+            poll=lambda self, obj: obj.type == 'ARMATURE'
+        )
+
+        bpy.types.Scene.rigify_rig = bpy.props.PointerProperty(
+            type=bpy.types.Object,
+            name="Rigify Rig",
+            description="Rigify rig for connecting shape key drivers",
+            poll=lambda self, obj: obj.type == 'ARMATURE'
+        )
+
+        bpy.types.WindowManager.show_shape_keys = bpy.props.BoolProperty(
+            name="Show Shape Keys",
+            description="Show available shape keys",
+            default=True
+        )
+        
+        bpy.types.Scene.widget_collection = bpy.props.PointerProperty(
+            type=bpy.types.Collection,
+            name="Widget Collection",
+            description="Select collection containing widget objects",
+            poll=lambda self, obj: obj.name.startswith('WGT_')
+        )
+        
+        bpy.types.Scene.target_pose_bone = bpy.props.StringProperty(
+            name="Target Bone",
+            description="Select bone to assign the widget",
+        )
+        
+        bpy.types.Scene.is_sync_enabled = bpy.props.BoolProperty(
+            name="Enable Auto Sync",
+            description="Automatically sync metarig bone with rigify bone",
+            default=True
+        )
+        
+        # Register handlers
+        if operators.transform_handler not in bpy.app.handlers.depsgraph_update_post:
+            bpy.app.handlers.depsgraph_update_post.append(operators.transform_handler)
         
         print("Shape Key Control Creator: Registration successful")
+        
     except Exception as e:
         print(f"Shape Key Control Creator: Registration failed: {str(e)}")
 
 def unregister():
-    """Unregister all modules and translations / 모든 모듈과 번역 등록 해제"""
+    """Unregister all modules and translations"""
     try:
-        # Unregister modules / 모듈 등록 해제
-        for module in reversed(modules):
-            module.unregister()
+        # Unregister handlers
+        if operators.transform_handler in bpy.app.handlers.depsgraph_update_post:
+            bpy.app.handlers.depsgraph_update_post.remove(operators.transform_handler)
+        
+        # Unregister properties
+        del bpy.types.Scene.is_sync_enabled
+        del bpy.types.Scene.metarig
+        del bpy.types.Scene.rigify_rig
+        del bpy.types.WindowManager.show_shape_keys
+        del bpy.types.Scene.widget_collection
+        del bpy.types.Scene.target_pose_bone
+        
+        # Unregister classes
+        for cls in reversed(panel.classes):
+            try:
+                bpy.utils.unregister_class(cls)
+            except Exception as e:
+                print(f"Failed to unregister {cls.__name__}: {str(e)}")
+                
+        for cls in reversed(operators.classes):
+            try:
+                bpy.utils.unregister_class(cls)
+            except Exception as e:
+                print(f"Failed to unregister {cls.__name__}: {str(e)}")
+        
+        # Unregister translations
+        translations.unregister()
         
         print("Shape Key Control Creator: Unregistration successful")
+        
     except Exception as e:
         print(f"Shape Key Control Creator: Unregistration failed: {str(e)}")
 

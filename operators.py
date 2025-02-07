@@ -3,7 +3,7 @@ import math
 import mathutils
 from . import utils
 from bpy.types import Operator
-from bpy.props import EnumProperty, StringProperty, BoolProperty, FloatProperty
+from bpy.props import EnumProperty, StringProperty, BoolProperty, FloatProperty, PointerProperty
 
 class OBJECT_OT_text_input_dialog(Operator):
     """Dialog for entering custom text for shape key widgets"""
@@ -196,6 +196,12 @@ class OBJECT_OT_apply_shape_key_to_bone(Operator):
         update=lambda self, context: self.on_shape_key_updated()
     ) # type: ignore
 
+    shape_collection: PointerProperty(
+        type=bpy.types.Collection,
+        name="Shape Collection",
+        description="Optional: Select collection containing shape objects to transform with bone"
+    ) # type: ignore
+
     transform_type: EnumProperty(
         name="Transform Type",
         description="Type of transform to control the shape key",
@@ -215,7 +221,12 @@ class OBJECT_OT_apply_shape_key_to_bone(Operator):
     
     @classmethod
     def poll(cls, context):
-        return context.mode == 'POSE' and context.active_pose_bone
+        # 에딧 모드나 포즈 모드에서 본이 선택되었는지 확인
+        if context.mode not in {'EDIT_ARMATURE', 'POSE'}:
+            return False
+            
+        return (context.mode == 'EDIT_ARMATURE' and context.active_bone) or \
+               (context.mode == 'POSE' and context.active_pose_bone)
     
     def invoke(self, context, event):
         # 기본값 설정: 첫 번째 사용 가능한 메쉬와 쉐이프 키 선택
@@ -235,12 +246,18 @@ class OBJECT_OT_apply_shape_key_to_bone(Operator):
         layout.prop(self, "target_mesh")
         if self.target_mesh:
             layout.prop(self, "target_shape_key")
+        layout.prop(self, "shape_collection")
         layout.prop(self, "transform_type")
-        layout.prop(self, "multiplier", slider=True)  # 슬라이더로 표시
+        layout.prop(self, "multiplier", slider=True)
     
     def execute(self, context):
-        pose_bone = context.active_pose_bone
         armature = context.active_object
+        
+        # 현재 모드에 따라 본 이름 가져오기
+        if context.mode == 'EDIT_ARMATURE':
+            bone_name = context.active_bone.name
+        else:
+            bone_name = context.active_pose_bone.name
         
         target_mesh = bpy.data.objects.get(self.target_mesh)
         if not target_mesh:
@@ -248,12 +265,13 @@ class OBJECT_OT_apply_shape_key_to_bone(Operator):
             return {'CANCELLED'}
         
         try:
+            # 1. 쉐이프 키 드라이버 설정
             if self.target_shape_key in target_mesh.data.shape_keys.key_blocks:
                 shape_key = target_mesh.data.shape_keys.key_blocks[self.target_shape_key]
                 
                 success, error_message = utils.setup_shape_key_driver(
                     armature,
-                    pose_bone.name,
+                    bone_name,
                     shape_key,
                     self.transform_type,
                     self.multiplier
@@ -263,7 +281,28 @@ class OBJECT_OT_apply_shape_key_to_bone(Operator):
                     self.report({'ERROR'}, f"Error setting up driver: {error_message}")
                     return {'CANCELLED'}
                 
-                self.report({'INFO'}, f"Successfully connected bone '{pose_bone.name}' to shape key '{self.target_shape_key}'")
+                # 2. 쉐이프 컬렉션 처리
+                if self.shape_collection and self.shape_collection.objects:
+                    # 모드에 따라 적절한 매트릭스 가져오기
+                    if context.mode == 'EDIT_ARMATURE':
+                        bone_matrix = armature.matrix_world @ context.active_bone.matrix
+                    else:
+                        bone_matrix = armature.matrix_world @ context.active_pose_bone.matrix
+                    
+                    for obj in self.shape_collection.objects:
+                        # 기존 페어런트 관계 해제
+                        if obj.parent:
+                            original_matrix = obj.matrix_world.copy()
+                            obj.parent = None
+                            obj.matrix_world = original_matrix
+                        
+                        # 새로운 페어런트 설정
+                        obj.parent = armature
+                        obj.parent_type = 'BONE'
+                        obj.parent_bone = bone_name
+                        obj.matrix_parent_inverse = bone_matrix.inverted()
+                
+                self.report({'INFO'}, f"Successfully connected bone '{bone_name}' to shape key '{self.target_shape_key}'")
             else:
                 self.report({'ERROR'}, f"Shape key '{self.target_shape_key}' not found in mesh")
                 return {'CANCELLED'}
@@ -621,6 +660,179 @@ class OBJECT_OT_show_select_mesh_popup(Operator):
         row.label(text="Shape Key Connection Required!", icon='ERROR')
         row = layout.row()
         row.label(text="Please select a mesh and shape key first.")
+        
+class EDIT_OT_sync_metarig_bone(Operator):
+    """Sync metarig bone with rigify bone"""
+    bl_idname = "edit.sync_metarig_bone"
+    bl_label = "Sync with Metarig"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    shape_collection: EnumProperty(
+        name="Shape Collection",
+        description="Select collection containing shape objects",
+        items=lambda self, context: [
+            (col.name, col.name, "")
+            for col in bpy.data.collections
+        ]
+    ) # type: ignore
+
+    @classmethod
+    def poll(cls, context):
+        return (context.mode == 'EDIT_ARMATURE' and 
+                context.active_bone and 
+                context.scene.metarig and 
+                context.scene.rigify_rig and
+                context.active_object == context.scene.rigify_rig)
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "shape_collection")
+
+    def execute(self, context):
+        # 현재 본과 오브젝트 정보 저장
+        rigify_bone = context.active_bone
+        bone_name = rigify_bone.name
+        rigify_rig = context.scene.rigify_rig
+        metarig = context.scene.metarig
+        
+        # 선택된 컬렉션 가져오기
+        shape_collection = bpy.data.collections.get(self.shape_collection)
+        
+        # 본의 현재 변환값 저장
+        head_pos = rigify_bone.head.copy()
+        tail_pos = rigify_bone.tail.copy()
+        roll_value = rigify_bone.roll
+        
+        try:
+            # 메타리그 상태 저장
+            was_hidden = metarig.hide_viewport
+            was_hidden_select = metarig.hide_select
+            was_hidden_get = metarig.hide_get()
+            
+            # 메타리그 완전히 활성화
+            metarig.hide_viewport = False
+            metarig.hide_select = False
+            metarig.hide_set(False)
+            
+            # 1. 리기파이 리그에서 오브젝트 모드로 전환
+            bpy.ops.object.mode_set(mode='OBJECT')
+            
+            # 2. 메타리그로 전환
+            bpy.ops.object.select_all(action='DESELECT')
+            metarig.select_set(True)
+            context.view_layer.objects.active = metarig
+            
+            # 3. 에딧 모드로 전환
+            bpy.ops.object.mode_set(mode='EDIT')
+            
+            # 4. 본 트랜스폼 복사
+            metarig_bone = metarig.data.edit_bones.get(bone_name)
+            if metarig_bone:
+                metarig_bone.head = head_pos
+                metarig_bone.tail = tail_pos
+                metarig_bone.roll = roll_value
+            else:
+                self.report({'ERROR'}, f"Bone {bone_name} not found in metarig edit_bones")
+                return {'CANCELLED'}
+            
+            # 5. 오브젝트 모드로 전환
+            bpy.ops.object.mode_set(mode='OBJECT')
+            
+            # 6. 쉐이프 컬렉션 처리
+            if shape_collection and shape_collection.objects:
+                # 본의 매트릭스와 위치 정보 계산
+                bone_matrix = metarig.matrix_world @ metarig.pose.bones[bone_name].matrix
+                bone_loc = bone_matrix.translation
+                bone_rot = bone_matrix.to_euler('XYZ')
+                bone_length = metarig.pose.bones[bone_name].length
+                
+                # 기본 스케일과 오프셋 설정
+                base_scale = bone_length * 0.5
+                slider_width = bone_length * 2
+                slider_height = bone_length * 0.1
+                text_scale = bone_length * 0.4
+                
+                # 본의 회전 정보 계산
+                bone_rot_quat = bone_matrix.to_quaternion()
+                
+                for obj in shape_collection.objects:
+                    if 'TEXT_' in obj.name:  # 텍스트 오브젝트
+                        text_offset = mathutils.Vector((0, bone_length * 0.3, 0))
+                        text_offset.rotate(bone_rot_quat)
+                        obj.location = bone_loc + text_offset
+                        obj.rotation_euler = bone_rot
+                        obj.scale = mathutils.Vector((text_scale, text_scale, text_scale))
+                        
+                    elif 'SLIDE_' in obj.name:  # 슬라이더 라인
+                        obj.location = bone_loc
+                        obj.rotation_mode = 'XYZ'
+                        obj.rotation_euler = (math.radians(90), bone_rot.y, bone_rot.z)
+                        obj.scale = mathutils.Vector((slider_width, slider_height, base_scale))
+                        
+                    else:  # 핸들 또는 기타 오브젝트
+                        obj.location = bone_loc
+                        obj.rotation_euler = bone_rot
+                        obj.scale = mathutils.Vector((base_scale, base_scale, base_scale))
+            
+            # 7. 리기파이 리그로 돌아가기
+            bpy.ops.object.select_all(action='DESELECT')
+            rigify_rig.select_set(True)
+            context.view_layer.objects.active = rigify_rig
+            bpy.ops.object.mode_set(mode='EDIT')
+            
+            # 쉐이프 키 업데이트
+            self.update_linked_shape_keys(context, metarig.data.bones[bone_name])
+            
+            # 메타리그 원래 상태로 복원
+            metarig.hide_viewport = was_hidden
+            metarig.hide_select = was_hidden_select
+            metarig.hide_set(was_hidden_get)
+            
+            self.report({'INFO'}, f"Successfully synced bone: {bone_name}")
+            return {'FINISHED'}
+            
+        except Exception as e:
+            # 에러 발생 시 메타리그 상태 복원
+            if 'was_hidden' in locals():
+                metarig.hide_viewport = was_hidden
+                metarig.hide_select = was_hidden_select
+                metarig.hide_set(was_hidden_get)
+            
+            print(f"\nError details: {str(e)}")
+            print(f"Current mode: {context.mode}")
+            print(f"Active object: {context.active_object.name if context.active_object else 'None'}")
+            
+            self.report({'ERROR'}, f"Error syncing bones: {str(e)}")
+            return {'CANCELLED'}
+        
+    def update_linked_shape_keys(self, context, bone):
+        """본에 연결된 쉐이프 키 업데이트"""
+        for obj in context.scene.objects:
+            if obj.type == 'MESH' and obj.data.shape_keys and obj.data.shape_keys.animation_data:
+                for driver in obj.data.shape_keys.animation_data.drivers:
+                    for var in driver.driver.variables:
+                        if (var.type == 'TRANSFORMS' and 
+                            var.targets[0].id == context.scene.metarig and
+                            var.targets[0].bone_target == bone.name):
+                            driver.driver.expression = driver.driver.expression
+
+def transform_handler(scene):
+    """Transform handler for auto-sync"""
+    try:
+        if (scene.is_sync_enabled and 
+            scene.metarig and 
+            scene.rigify_rig and 
+            bpy.context.mode == 'EDIT_ARMATURE' and
+            bpy.context.active_bone and
+            bpy.context.active_object == scene.rigify_rig):
+            
+            bpy.ops.edit.sync_metarig_bone()
+            
+    except Exception as e:
+        print(f"Error in transform handler: {str(e)}")
 
 classes = (
     OBJECT_OT_text_input_dialog,
@@ -628,12 +840,5 @@ classes = (
     OBJECT_OT_apply_shape_key_to_bone,
     OBJECT_OT_add_shape_key_bone,
     OBJECT_OT_show_select_mesh_popup,
+    EDIT_OT_sync_metarig_bone,    
 )
-
-def register():
-    for cls in classes:
-        bpy.utils.register_class(cls)
-
-def unregister():
-    for cls in classes:
-        bpy.utils.unregister_class(cls)

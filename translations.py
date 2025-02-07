@@ -132,6 +132,16 @@ ko_KR = {
     ("*", "Apply Shape Key to Bone"): "본에 쉐이프 키 적용",
     ("*", "Show popup when mesh selection is required"): "메쉬 선택이 필요할 때 팝업 표시",
     ("*", "Shape Key Required"): "쉐이프 키 필요",
+    ("*", "Shape Key Sync"): "쉐이프 키 동기화",
+    ("*", "Enable Auto Sync"): "자동 동기화 활성화",
+    ("*", "Sync Now"): "지금 동기화",
+    ("*", "Select a Rigify bone in Edit mode"): "에딧 모드에서 리기파이 본을 선택하세요",
+    ("*", "Sync metarig bone with rigify bone"): "메타리그 본을 리기파이 본과 동기화",
+    ("*", "Automatically sync metarig bone with rigify bone"): "메타리그 본을 리기파이 본과 자동으로 동기화",
+    ("*", "No matching bone found in metarig"): "메타리그에서 일치하는 본을 찾을 수 없습니다",
+    ("*", "Error syncing bones"): "본 동기화 중 오류 발생",
+    ("*", "Parent to Head"): "헤드 본에 페어런트",
+    ("*", "Add Child Of constraint to Rigify head bone"): "리기파이 헤드 본에 차일드 오브 콘스트레인트 추가",
 }
 
 # 일본어 번역
@@ -268,6 +278,16 @@ ja_JP = {
     ("*", "Apply Shape Key to Bone"): "ボーンにシェイプキーを適用",
     ("*", "Show popup when mesh selection is required"): "メッシュ選択が必要な時にポップアップを表示",
     ("*", "Shape Key Required"): "シェイプキーが必要",
+    ("*", "Shape Key Sync"): "シェイプキー同期",
+    ("*", "Enable Auto Sync"): "自動同期を有効化",
+    ("*", "Sync Now"): "今すぐ同期",
+    ("*", "Select a Rigify bone in Edit mode"): "編集モードでRigifyボーンを選択してください",
+    ("*", "Sync metarig bone with rigify bone"): "メタリグボーンをRigifyボーンと同期",
+    ("*", "Automatically sync metarig bone with rigify bone"): "メタリグボーンをRigifyボーンと自動的に同期",
+    ("*", "No matching bone found in metarig"): "メタリグに一致するボーンが見つかりません",
+    ("*", "Error syncing bones"): "ボーンの同期中にエラーが発生しました",
+    ("*", "Parent to Head"): "ヘッドボーンにペアレント",
+    ("*", "Add Child Of constraint to Rigify head bone"): "Rigifyヘッドボーンにチャイルドオブコンストレイントを追加",
 }
 
 # 중국어 번역
@@ -403,7 +423,17 @@ zh_CN = {
     ("*", "Apply shape key animation to selected bone"): "将形态键动画应用到选定骨骼",
     ("*", "Apply Shape Key to Bone"): "将形态键应用到骨骼",
     ("*", "Show popup when mesh selection is required"): "需要选择网格时显示弹窗",
-    ("*", "Shape Key Required"): "需要形态键"
+    ("*", "Shape Key Required"): "需要形态键",
+    ("*", "Shape Key Sync"): "形态键同步",
+    ("*", "Enable Auto Sync"): "启用自动同步",
+    ("*", "Sync Now"): "立即同步",
+    ("*", "Select a Rigify bone in Edit mode"): "在编辑模式下选择Rigify骨骼",
+    ("*", "Sync metarig bone with rigify bone"): "将元骨架骨骼与Rigify骨骼同步",
+    ("*", "Automatically sync metarig bone with rigify bone"): "自动将元骨架骨骼与Rigify骨骼同步",
+    ("*", "No matching bone found in metarig"): "在元骨架中找不到匹配的骨骼",
+    ("*", "Error syncing bones"): "同步骨骼时出错",
+    ("*", "Parent to Head"): "父级至头部骨骼",
+    ("*", "Add Child Of constraint to Rigify head bone"): "添加子级约束到Rigify头部骨骼",
 }
 
 # 전체 번역 딕셔너리
