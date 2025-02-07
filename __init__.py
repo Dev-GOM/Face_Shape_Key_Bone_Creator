@@ -19,8 +19,8 @@ bl_info = {
     "location": "View3D > Sidebar > Shape Key Control Creator",
     "description": "Creates text objects with sliders for shape keys / 쉐이프 키를 위한 텍스트 슬라이더 생성 / シェイプキー用のテキストスライダーを作成 / 为形态键创建文本滑块",
     "category": "Object",
-    "doc_url": "https://github.com/Dev-GOM/Face_Shape_Key_Bone_Creator/blob/main/README.md",
-    "tracker_url": "https://github.com/Dev-GOM/Face_Shape_Key_Bone_Creator/issues",
+    "doc_url": "https://github.com/Dev-GOM/Shape-Key-Control-Creator/blob/main/README.md",
+    "tracker_url": "https://github.com/Dev-GOM/Shape-Key-Control-Creator/issues",
     "warning": "",
     "support": "COMMUNITY"
 }
