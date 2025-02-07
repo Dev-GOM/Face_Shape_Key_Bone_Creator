@@ -2,6 +2,16 @@
 
 [English](#english) | [한글](#korean) | [日本語](#japanese) | [中文](#chinese)
 
+## Preview / 미리보기 / プレビュー / 预览
+
+[![Video Tutorial](https://img.youtube.com/vi/ZL2vitS9E3M/maxresdefault.jpg)](https://youtu.be/ZL2vitS9E3M)
+
+<details>
+<summary>Watch on YouTube / 유튜브에서 보기 / YouTubeで見る / 在YouTube上观看</summary>
+
+▶️ [Shape Keys Bone And Custom Shape Creater - Blender Face Animation Add-on](https://youtu.be/ZL2vitS9E3M)
+</details>
+
 <a name="english"></a>
 # Shape Key Text Creator
 
