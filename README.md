@@ -1,6 +1,6 @@
-# Shape Key Text Creator
+# Face Shape Key Bone Creator
 
-[English](#english) | [한글](#korean)
+[English](#english) | [한글](#korean) | [日本語](#japanese) | [中文](#chinese)
 
 <a name="english"></a>
 # Shape Key Text Creator
@@ -66,7 +66,9 @@ Shape Key Text Creator is a Blender add-on that visualizes and controls shape ke
 
 ## License
 
-MIT License
+GNU General Public License v3.0 (GPL-3.0)
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
 ---
 
@@ -134,7 +136,9 @@ MIT License
 
 ## 라이선스
 
-MIT License
+GNU General Public License v3.0 (GPL-3.0)
+
+이 프로그램은 자유 소프트웨어입니다. GNU 일반 공중 사용 허가서(GPL) 버전 3 또는 그 이후 버전의 조건에 따라 이 프로그램을 재배포하거나 수정할 수 있습니다.
 
 ---
 
@@ -202,7 +206,9 @@ MIT License
 
 ## ライセンス
 
-MIT License
+GNU General Public License v3.0 (GPL-3.0)
+
+このプログラムはフリーソフトウェアです。フリーソフトウェア財団によって発行されたGNU 一般公衆利用許諾契約書(GPL)バージョン3または、それ以降のバージョンの条件の下で再配布または改変することができます。
 
 ---
 
@@ -270,4 +276,6 @@ MIT License
 
 ## 许可证
 
-MIT License
+GNU General Public License v3.0 (GPL-3.0)
+
+本程序是自由软件：您可以根据自由软件基金会发布的GNU通用公共许可证的条款重新分发和/或修改它，可以选择使用版本3或更高版本的许可证。
