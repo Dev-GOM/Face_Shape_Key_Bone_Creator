@@ -12,11 +12,11 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 bl_info = {
-    "name": "Face Shape Key Bone Creator",
+    "name": "Shape Key Control Creator",
     "author": "Dev.GOM",
     "version": (1, 0),
     "blender": (4, 0, 0),
-    "location": "View3D > Sidebar > Face Shape Key Tools",
+    "location": "View3D > Sidebar > Shape Key Control Creator",
     "description": "Creates text objects with sliders for shape keys / 쉐이프 키를 위한 텍스트 슬라이더 생성 / シェイプキー用のテキストスライダーを作成 / 为形态键创建文本滑块",
     "category": "Object",
     "doc_url": "https://github.com/Dev-GOM/Face_Shape_Key_Bone_Creator/blob/main/README.md",
