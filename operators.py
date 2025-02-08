@@ -1073,38 +1073,47 @@ class ARMATURE_OT_rigify_regenerate_with_widgets(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        # 현재 리기파이 리그의 커스텀 위젯 정보 저장
-        rigify_rig = context.scene.rigify_rig
-        stored_widgets = utils.store_custom_widgets(rigify_rig)
+        try:
+            # 현재 리기파이 리그의 커스텀 위젯 정보 저장
+            rigify_rig = context.scene.rigify_rig
+            stored_widgets = utils.store_custom_widgets(rigify_rig)
 
-        # 리기파이 리제네레이트 실행
-        bpy.ops.pose.rigify_generate()
+            # 오브젝트 모드로 전환
+            if context.mode != 'OBJECT':
+                bpy.ops.object.mode_set(mode='OBJECT')
 
-        # 새로운 리기파이 리그 찾기
-        new_rigify_rig = context.active_object
+            # 모든 선택 해제
+            bpy.ops.object.select_all(action='DESELECT')
 
-        # 저장된 커스텀 위젯 정보 복원
-        utils.restore_custom_widgets(new_rigify_rig, stored_widgets)
+            # 리기파이 리제네레이트 실행
+            bpy.ops.pose.rigify_generate()
 
-        # 메타리그 비활성화
-        metarig = context.scene.metarig
-        if metarig:
-            metarig.hide_viewport = True
-            metarig.hide_select = True
-            metarig.hide_set(True)
+            # 새로운 리기파이 리그 찾기
+            new_rigify_rig = context.active_object
 
-        # 모든 선택 해제
-        bpy.ops.object.select_all(action='DESELECT')
+            # 저장된 커스텀 위젯 정보 복원
+            utils.restore_custom_widgets(new_rigify_rig, stored_widgets)
 
-        # 리기파이 리그 선택 및 활성화
-        new_rigify_rig.select_set(True)
-        context.view_layer.objects.active = new_rigify_rig
+            # 메타리그 비활성화
+            metarig = context.scene.metarig
+            if metarig:
+                metarig.hide_viewport = True
+                metarig.hide_select = True
+                metarig.hide_set(True)
 
-        # 포즈 모드로 전환
-        bpy.ops.object.mode_set(mode='POSE')
+            # 리기파이 리그 선택 및 활성화
+            new_rigify_rig.select_set(True)
+            context.view_layer.objects.active = new_rigify_rig
 
-        self.report({'INFO'}, "Rigify regenerated and widgets preserved")
-        return {'FINISHED'}
+            # 포즈 모드로 전환
+            bpy.ops.object.mode_set(mode='POSE')
+
+            self.report({'INFO'}, "Rigify regenerated and widgets preserved")
+            return {'FINISHED'}
+
+        except Exception as e:
+            self.report({'ERROR'}, f"Error during regeneration: {str(e)}")
+            return {'CANCELLED'}
 
 classes = (
     OBJECT_OT_text_input_dialog,

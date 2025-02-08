@@ -617,6 +617,13 @@ def store_custom_widgets(armature):
     """Store custom widget information for bones
     Only stores custom widgets that start with 'WGT_shape_key_ctrl'
     """
+    # 현재 모드 확인
+    current_mode = bpy.context.mode
+    
+    # 포즈 모드로 전환
+    if current_mode != 'POSE':
+        bpy.ops.object.mode_set(mode='POSE')
+    
     stored_widgets = {}
     for pose_bone in armature.pose.bones:
         if (pose_bone.custom_shape and 
@@ -628,20 +635,38 @@ def store_custom_widgets(armature):
                 'translation': pose_bone.custom_shape_translation,
                 'rotation': pose_bone.custom_shape_rotation_euler
             }
+    
     return stored_widgets
 
 def restore_custom_widgets(armature, stored_widgets):
     """Restore custom widget information to bones"""
-    for bone_name, widget_info in stored_widgets.items():
-        if bone_name in armature.pose.bones:
-            pose_bone = armature.pose.bones[bone_name]
+    # 현재 선택 상태 저장
+    current_mode = bpy.context.mode
+    
+    # 포즈 모드로 전환
+    if current_mode != 'POSE':
+        bpy.ops.object.mode_set(mode='POSE')
+    
+    # 본 이름 매핑 생성
+    bone_mapping = {}
+    for new_bone in armature.pose.bones:
+        base_name = new_bone.name.split('.')[0]
+        if base_name in stored_widgets:
+            bone_mapping[base_name] = new_bone.name
+    
+    # 커스텀 위젯 복원
+    for old_bone_name, widget_info in stored_widgets.items():
+        # 새로운 본 이름 찾기
+        new_bone_name = bone_mapping.get(old_bone_name, old_bone_name)
+        
+        if new_bone_name in armature.pose.bones:
+            pose_bone = armature.pose.bones[new_bone_name]
+            widget = widget_info['widget']
+            
             # 위젯이 여전히 존재하는지 확인
-            if widget_info['widget'] and widget_info['widget'].name in bpy.data.objects:
-                pose_bone.custom_shape = widget_info['widget']
-                pose_bone.use_custom_shape_bone_size = widget_info['size']
-                pose_bone.custom_shape_scale_xyz = widget_info['scale']
-                pose_bone.custom_shape_translation = widget_info['translation']
-                pose_bone.custom_shape_rotation_euler = widget_info['rotation']
+            if widget and widget.name in bpy.data.objects:
+                # 커스텀 쉐이프 설정
+                pose_bone.custom_shape = widget
 
 def transform_handler(scene):
     """Transform handler for auto-sync"""
