@@ -19,6 +19,110 @@ Shape Key Bone Control Creator is a Blender add-on that helps you visualize and 
 ## Version History / 버전 기록 / バージョン履歴 / 版本历史
 
 <details>
+<summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.1.3 (2025-02-08)</code></summary>
+
+<details>
+<summary><code style="color: #28a745;">🇺🇸 English</code></summary>
+
+**Custom Driver Support Enhancement**
+- Add support for user-created custom drivers
+  - Display original expression for complex formulas
+  - Handle mathematical operators in expressions
+  - Preserve custom driver formulas in UI
+- Improve driver value parsing
+  - Add robust error handling for driver expressions
+  - Handle various driver formula formats
+  - Support complex mathematical expressions
+
+**UI Improvements**
+- Add different UI states for various expression types
+  - Show original formula for non-standard expressions
+  - Display "Custom" label for unrecognized formats
+  - Maintain existing UI for standard drivers
+
+**Bug Fixes**
+- Fix incorrect value display for complex expressions
+- Improve handling of mathematical operators
+- Add proper error handling for invalid expressions
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇰🇷 한글</code></summary>
+
+**사용자 정의 드라이버 지원 강화**
+- 사용자가 생성한 커스텀 드라이버 지원 추가
+  - 복잡한 수식의 원본 표현식 표시
+  - 수학 연산자가 포함된 표현식 처리
+  - 커스텀 드라이버 수식 보존
+- 드라이버 값 파싱 개선
+  - 드라이버 표현식에 대한 안정적인 오류 처리
+  - 다양한 드라이버 수식 형식 처리
+  - 복잡한 수학 표현식 지원
+
+**UI 개선**
+- 다양한 표현식 유형에 대한 UI 상태 추가
+  - 비표준 표현식의 원본 수식 표시
+  - 인식할 수 없는 형식에 대해 "Custom" 라벨 표시
+  - 표준 드라이버에 대한 기존 UI 유지
+
+**버그 수정**
+- 복잡한 표현식의 잘못된 값 표시 수정
+- 수학 연산자 처리 개선
+- 잘못된 표현식에 대한 적절한 오류 처리 추가
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇯🇵 日本語</code></summary>
+
+**カスタムドライバーサポートの強化**
+- ユーザー作成のカスタムドライバーをサポート
+  - 複雑な数式の元の表現を表示
+  - 数学演算子を含む表現の処理
+  - カスタムドライバーの数式を保持
+- ドライバー値の解析を改善
+  - ドライバー表現の堅牢なエラー処理
+  - 様々なドライバー数式形式に対応
+  - 複雑な数学表現をサポート
+
+**UI改善**
+- 様々な表現タイプに対するUI状態を追加
+  - 非標準表現の元の数式を表示
+  - 認識できない形式に対して「Custom」ラベルを表示
+  - 標準ドライバーの既存UIを維持
+
+**バグ修正**
+- 複雑な表現の不正な値表示を修正
+- 数学演算子の処理を改善
+- 無効な表現に対する適切なエラー処理を追加
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇨🇳 中文</code></summary>
+
+**自定义驱动器支持增强**
+- 添加用户创建的自定义驱动器支持
+  - 显示复杂公式的原始表达式
+  - 处理包含数学运算符的表达式
+  - 保留自定义驱动器公式
+- 改进驱动器值解析
+  - 添加驱动器表达式的稳健错误处理
+  - 处理各种驱动器公式格式
+  - 支持复杂数学表达式
+
+**UI改进**
+- 为各种表达式类型添加不同的UI状态
+  - 显示非标准表达式的原始公式
+  - 对无法识别的格式显示"Custom"标签
+  - 维护标准驱动器的现有UI
+
+**错误修复**
+- 修复复杂表达式的错误值显示
+- 改进数学运算符处理
+- 添加对无效表达式的适当错误处理
+</details>
+</details>
+
+<details>
 <summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.1.2 (2025-02-08)</code></summary>
 
 ![Shape Key UI Preview](./images/shape_key_ui_preview.png)
