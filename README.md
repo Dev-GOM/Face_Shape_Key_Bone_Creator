@@ -19,6 +19,106 @@ Shape Key Bone Control Creator is a Blender add-on that helps you visualize and 
 ## Version History / 버전 기록 / バージョン履歴 / 版本历史
 
 <details>
+<summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.1.5 (2025-02-09)</code></summary>
+
+<details>
+<summary><code style="color: #28a745;">🇺🇸 English</code></summary>
+
+**Driver Value Preservation**
+- Add existing driver value detection
+  - Preserve original driver influence values
+  - Copy existing driver multiplier values
+  - Add fallback to default values
+- Improve driver setup consistency
+  - Handle rotation, location, and scale drivers
+  - Maintain influence values across operations
+
+**Driver Setup Enhancement**
+- Add intelligent driver value handling
+  - Parse existing driver expressions
+  - Extract influence values from different formats
+  - Preserve mathematical relationships
+
+**Bug Fixes**
+- Fix hardcoded driver multiplier values
+- Improve driver value extraction reliability
+- Add proper error handling for driver parsing
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇰🇷 한글</code></summary>
+
+**드라이버 값 보존**
+- 기존 드라이버 값 감지 추가
+  - 원본 드라이버 영향도 값 보존
+  - 기존 드라이버 승수 값 복사
+  - 기본값 폴백 추가
+- 드라이버 설정 일관성 개선
+  - 회전, 위치, 스케일 드라이버 처리
+  - 작업 간 영향도 값 유지
+
+**드라이버 설정 강화**
+- 지능형 드라이버 값 처리 추가
+  - 기존 드라이버 표현식 파싱
+  - 다양한 형식에서 영향도 값 추출
+  - 수학적 관계 보존
+
+**버그 수정**
+- 하드코딩된 드라이버 승수 값 수정
+- 드라이버 값 추출 신뢰성 개선
+- 드라이버 파싱을 위한 적절한 오류 처리 추가
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇯🇵 日本語</code></summary>
+
+**ドライバー値の保持**
+- 既存ドライバー値の検出を追加
+  - 元のドライバーの影響度値を保持
+  - 既存ドライバーの乗数値をコピー
+  - デフォルト値へのフォールバックを追加
+- ドライバー設定の一貫性を改善
+  - 回転、位置、スケールドライバーの処理
+  - 操作間での影響度値の維持
+
+**ドライバー設定の強化**
+- インテリジェントなドライバー値処理を追加
+  - 既存ドライバー式の解析
+  - 様々な形式からの影響度値の抽出
+  - 数学的関係の保持
+
+**バグ修正**
+- ハードコードされたドライバー乗数値を修正
+- ドライバー値抽出の信頼性を改善
+- ドライバー解析の適切なエラー処理を追加
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇨🇳 中文</code></summary>
+
+**驱动器值保持**
+- 添加现有驱动器值检测
+  - 保持原始驱动器影响值
+  - 复制现有驱动器倍数值
+  - 添加默认值回退
+- 改进驱动器设置一致性
+  - 处理旋转、位置和缩放驱动器
+  - 在操作间维持影响值
+
+**驱动器设置增强**
+- 添加智能驱动器值处理
+  - 解析现有驱动器表达式
+  - 从不同格式提取影响值
+  - 保持数学关系
+
+**错误修复**
+- 修复硬编码的驱动器倍数值
+- 改进驱动器值提取可靠性
+- 添加适当的驱动器解析错误处理
+</details>
+</details>
+
+<details>
 <summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.1.4 (2025-02-08)</code></summary>
 
 <details>
