@@ -368,7 +368,25 @@ class OBJECT_OT_create_shape_key_slider(Operator):
         # 드라이버 설정을 위한 shape key block 가져오기
         mesh_obj = bpy.data.objects[self.target_mesh]
         shape_key_block = mesh_obj.data.shape_keys.key_blocks[self.shape_key]
-        
+
+        # 기존 드라이버의 값 가져오기
+        current_value = 3.0  # 기본값
+        if shape_key_block.id_data.animation_data:
+            for driver in shape_key_block.id_data.animation_data.drivers:
+                if driver.data_path == f'key_blocks["{shape_key_block.name}"].value':
+                    var = driver.driver.variables[0]
+                    transform_type = var.targets[0].transform_type
+                    try:
+                        if 'ROT' in transform_type:
+                            current_value = float(driver.driver.expression.split('*')[2]) / 57.2958
+                        elif 'LOC' in transform_type:
+                            current_value = float(driver.driver.expression.split('*')[1])
+                        else:  # SCALE
+                            current_value = float(driver.driver.expression.split('*')[1])
+                    except:
+                        pass
+                    break
+
         # 위젯 생성 - shape_key_block 전달
         widget, error = utils.create_shape_key_text_widget(
             context,
@@ -377,7 +395,7 @@ class OBJECT_OT_create_shape_key_slider(Operator):
             bone,
             shape_key_block
         )
-        
+
         if not widget:
             self.report({'ERROR'}, f"Failed to create widget: {error}")
             return {'CANCELLED'}
@@ -396,22 +414,15 @@ class OBJECT_OT_create_shape_key_slider(Operator):
                     constraint.use_scale_x = False
                     constraint.use_scale_y = False
                     constraint.use_scale_z = False
-        
-        # 드라이버 설정 - 이미 가져온 shape_key_block 사용
+
+        # 드라이버 설정 - 기존 드라이버의 값 사용
         success, error = utils.setup_shape_key_driver(
             context.active_object,
             bone.name,
             shape_key_block,
             'LOC_X',
-            4.0
+            current_value
         )
-        
-        if not success:
-            self.report({'ERROR'}, f"Failed to setup driver: {error}")
-            return {'CANCELLED'}
-        
-        self.report({'INFO'}, f"Created shape key slider for {self.shape_key}")
-        return {'FINISHED'}
 
 class OBJECT_OT_assign_shape_key_widget(Operator):
     """Assign widget to selected bone"""
