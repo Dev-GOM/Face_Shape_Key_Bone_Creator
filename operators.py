@@ -1079,14 +1079,27 @@ class ARMATURE_OT_rigify_regenerate_with_widgets(Operator):
             stored_widgets = utils.store_custom_widgets(rigify_rig)
 
             # 오브젝트 모드로 전환
-            if context.mode != 'OBJECT':
-                bpy.ops.object.mode_set(mode='OBJECT')
-
-            # 모든 선택 해제
+            bpy.ops.object.mode_set(mode='OBJECT')
             bpy.ops.object.select_all(action='DESELECT')
 
-            # 리기파이 리제네레이트 실행
-            bpy.ops.pose.rigify_generate()
+            # 메타리그 선택 및 활성화
+            metarig = context.scene.metarig
+            if not metarig:
+                self.report({'ERROR'}, "Metarig not found")
+                return {'CANCELLED'}
+                
+            metarig.hide_viewport = False
+            metarig.hide_select = False
+            metarig.hide_set(False)
+            metarig.select_set(True)
+            context.view_layer.objects.active = metarig
+            
+            try:
+                # 리기파이 리제네레이트 실행
+                bpy.ops.pose.rigify_generate()
+            except Exception as e:
+                self.report({'ERROR'}, f"Rigify generation failed: {str(e)}")
+                return {'CANCELLED'}
 
             # 새로운 리기파이 리그 찾기
             new_rigify_rig = context.active_object
@@ -1095,11 +1108,9 @@ class ARMATURE_OT_rigify_regenerate_with_widgets(Operator):
             utils.restore_custom_widgets(new_rigify_rig, stored_widgets)
 
             # 메타리그 비활성화
-            metarig = context.scene.metarig
-            if metarig:
-                metarig.hide_viewport = True
-                metarig.hide_select = True
-                metarig.hide_set(True)
+            metarig.hide_viewport = True
+            metarig.hide_select = True
+            metarig.hide_set(True)
 
             # 리기파이 리그 선택 및 활성화
             new_rigify_rig.select_set(True)
