@@ -27,6 +27,7 @@ bl_info = {
 
 import bpy
 from . import translations
+from . import utils
 from . import operators
 from . import panel
 

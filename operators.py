@@ -215,11 +215,11 @@ class OBJECT_OT_apply_shape_key_to_bone(Operator):
     multiplier: FloatProperty(
         name="Influence",
         description="Driver influence multiplier (higher value = stronger effect)",
-        default=4,
+        default=30,
         min=0.0,
-        max=60.0,
-        step=0.1,
-        precision=3
+        max=100.0,
+        step=1.0,
+        precision=1
     ) # type: ignore
     
     @classmethod
@@ -435,11 +435,11 @@ class OBJECT_OT_add_shape_key_bone(Operator):
     multiplier: FloatProperty(
         name="Influence",
         description="Driver influence strength multiplier",
-        default=4,
+        default=30,
         min=0.0,
-        max=60.0,
-        step=0.1,
-        precision=3
+        max=100.0,
+        step=1.0,
+        precision=1
     ) # type: ignore
 
     create_text_widget: BoolProperty(

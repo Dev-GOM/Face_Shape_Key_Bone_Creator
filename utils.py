@@ -57,7 +57,7 @@ def create_templates(template_collection):
             col.objects.unlink(handle)
         template_collection.objects.link(handle)
 
-def setup_shape_key_driver(armature, bone_name, shape_key, transform_type, multiplier=4.0):
+def setup_shape_key_driver(armature, bone_name, shape_key, transform_type, multiplier=30.0):
     """Set up driver for shape key control
     
     Args:
@@ -105,11 +105,86 @@ def setup_shape_key_driver(armature, bone_name, shape_key, transform_type, multi
                 
         if mesh_obj:
             mesh_obj.active_shape_key_index = 0  # Basis 선택
+            
+            # multiplier 속성 초기화 추가
+            shape_key.multiplier = multiplier
         
         return True, ""
         
     except Exception as e:
         return False, str(e)
+    
+def get_available_meshes(context):
+    """Returns visible mesh objects with shape keys"""
+    meshes = [obj for obj in context.scene.objects 
+             if (obj.type == 'MESH' and 
+                 obj.visible_get() and
+                 obj.data.shape_keys)]
+    print(f"Found meshes: {[mesh.name for mesh in meshes]}")  # 디버그용
+    return meshes
+
+def draw_shape_key_list(layout, mesh_obj):
+    """Draw shape key list UI"""
+    shape_keys = mesh_obj.data.shape_keys
+    
+    for key_block in shape_keys.key_blocks[1:]:
+        row = layout.row(align=True)
+        value_row = row.split(factor=0.7, align=True)
+        value_row.prop(key_block, "value", text=key_block.name)
+        
+        # animation_data와 drivers가 있는 경우에만 드라이버 UI 표시
+        if (shape_keys.animation_data and 
+            shape_keys.animation_data.drivers):
+            for driver in shape_keys.animation_data.drivers:
+                if driver.data_path == f'key_blocks["{key_block.name}"].value':
+                    var = driver.driver.variables[0]
+                    transform_type = var.targets[0].transform_type
+                    current_value = get_driver_value(driver, transform_type)
+                    
+                    # multiplier UI
+                    sub_row = value_row.row(align=True)
+                    props = sub_row.operator("shape.adjust_driver_value", 
+                                           text=f"{current_value:.1f}", 
+                                           icon='DRIVER')
+                    props.mesh_name = mesh_obj.name
+                    props.shape_key_name = key_block.name
+                    props.transform_type = transform_type
+                    props.value = current_value
+                    break
+
+def get_driver_value(driver, transform_type):
+    """Calculate current value of driver"""
+    try:
+        if 'ROT' in transform_type:
+            return float(driver.driver.expression.split('*')[2]) / 57.2958
+        elif 'LOC' in transform_type:
+            return float(driver.driver.expression.split('*')[1])
+        else:  # SCALE
+            return float(driver.driver.expression.split('*')[1])
+    except:
+        return 1.0  # 기본값
+
+def update_driver_expression(driver, value, transform_type, mesh_obj=None):
+    """
+    Update driver expression
+    Args:
+        driver: Driver object
+        value: New value
+        transform_type: Transform type
+        mesh_obj: Mesh object (optional)
+    """
+    rounded_value = round(value, 1)
+    
+    if 'ROT' in transform_type:
+        driver.expression = f"bone_transform * {57.2958 * rounded_value:.1f}"
+    elif 'LOC' in transform_type:
+        driver.expression = f"bone_transform * {rounded_value}"
+    else:  # SCALE
+        driver.expression = f"(bone_transform - 1.0) * {rounded_value}"
+    
+    # 메쉬 객체가 제공된 경우 Basis 선택
+    if mesh_obj:
+        mesh_obj.active_shape_key_index = 0
 
 def setup_bone_constraints(pose_bone, transform_type):
     """Set up bone constraints for shape key control

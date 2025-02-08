@@ -146,20 +146,16 @@ class SHAPEKEY_PT_tools_creator(Panel):
                            text="Delete Shape Key Bone", 
                            icon='TRASH')
 
-        # 포즈 모드 체크
         if context.mode == 'POSE':
-            # 사용 가능한 메쉬가 있는지 확인
-            available_meshes = [obj for obj in context.scene.objects 
-                            if obj.type == 'MESH' and obj.data.shape_keys]
+            available_meshes = utils.get_available_meshes(context)
             
             if available_meshes:
                 layout.operator("object.apply_shape_key_to_bone", text="Apply to Bone")
                 
-                # 쉐이프 키 리스트 표시
                 box = layout.box()
                 col = box.column()
                 
-                # 헤더 (화살표 + 레이블)
+                # 헤더
                 row = col.row(align=True)
                 is_expanded = context.window_manager.show_shape_keys
                 row.prop(context.window_manager, "show_shape_keys",
@@ -167,53 +163,111 @@ class SHAPEKEY_PT_tools_creator(Panel):
                         icon_only=True, emboss=False)
                 row.label(text="Available Shape Keys")
                 
-                # 폴드아웃 내용
                 if is_expanded:
-                    # 스크롤 영역 생성
                     scroll_box = box.box()
                     scroll = scroll_box.column_flow(columns=1, align=True)
-                    scroll.scale_y = 1  # 행 높이 조정
+                    scroll.scale_y = 1
                     
                     for mesh_obj in available_meshes:
                         scroll.label(text=f"Mesh: {mesh_obj.name}", icon='MESH_DATA')
-                        for key_block in mesh_obj.data.shape_keys.key_blocks[1:]:
-                            row = scroll.row()
-                            row.prop(key_block, "value", text=key_block.name)
-            else:
-                layout.label(text="No meshes with shape keys found")
+                        utils.draw_shape_key_list(scroll, mesh_obj)
 
-        # 오브젝트 모드 UI
-        elif obj and obj.type == 'MESH':
-            if obj.data.shape_keys:
-                op = layout.operator("object.create_shape_key_text", text="Create Shape Key Text")
+        # 오브젝트 모드
+        elif obj and obj.type == 'MESH' and obj.data.shape_keys:
+            layout.operator("object.create_shape_key_text", text="Create Shape Key Text")
+            
+            box = layout.box()
+            col = box.column()
+            
+            # 헤더
+            row = col.row(align=True)
+            is_expanded = context.window_manager.show_shape_keys
+            row.prop(context.window_manager, "show_shape_keys",
+                    icon='DOWNARROW_HLT' if is_expanded else 'RIGHTARROW',
+                    icon_only=True, emboss=False)
+            row.label(text="Available Shape Keys")
+            
+            if is_expanded:
+                scroll_box = box.box()
+                scroll = scroll_box.column_flow(columns=1, align=True)
+                scroll.scale_y = 1
+                utils.draw_shape_key_list(scroll, obj)
+                                
+class SHAPE_OT_adjust_driver_value(Operator):
+    """Adjust driver multiplier value"""
+    bl_idname = "shape.adjust_driver_value"
+    bl_label = "Adjust Driver Value"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    value: FloatProperty(
+        name="Multiplier",  # 레이블 변경
+        description="Driver multiplier value",
+        default=4.0,
+        min=0.0,
+        max=100.0,
+        step=1.0,
+        precision=1,
+        subtype='FACTOR'
+    ) # type: ignore
+
+    mesh_name: StringProperty()  # type: ignore
+    shape_key_name: StringProperty()  # type: ignore
+    transform_type: StringProperty()  # type: ignore
+    
+    def execute(self, context):
+        mesh_obj = bpy.data.objects.get(self.mesh_name)
+        if not mesh_obj or not mesh_obj.data.shape_keys or not mesh_obj.data.shape_keys.animation_data:
+            return {'CANCELLED'}
+            
+        shape_keys = mesh_obj.data.shape_keys
+        driver_path = f'key_blocks["{self.shape_key_name}"].value'
+        
+        for driver in shape_keys.animation_data.drivers:
+            if driver.data_path == driver_path:
+                utils.update_driver_expression(
+                    driver.driver,
+                    self.value,
+                    self.transform_type,
+                    mesh_obj
+                )
+                break
                 
-                box = layout.box()
-                col = box.column()
-                
-                # 헤더 (화살표 + 레이블)
-                row = col.row(align=True)
-                is_expanded = context.window_manager.show_shape_keys
-                row.prop(context.window_manager, "show_shape_keys",
-                        icon='DOWNARROW_HLT' if is_expanded else 'RIGHTARROW',
-                        icon_only=True, emboss=False)
-                row.label(text="Available Shape Keys")
-                
-                # 폴드아웃 내용
-                if is_expanded:
-                    # 스크롤 영역 생성
-                    scroll_box = box.box()
-                    scroll = scroll_box.column_flow(columns=1, align=True)
-                    scroll.scale_y = 1  # 행 높이 조정
-                    
-                    for key_block in obj.data.shape_keys.key_blocks[1:]:
-                        row = scroll.row()
-                        row.prop(key_block, "value", text=key_block.name)
-            else:
-                layout.label(text="No shape keys found")
-        else:
-            # 위젯 할당 버튼
-            row = layout.row()
-            row.operator("object.assign_shape_key_widget", text="Assign Widget To Bone")
+        return {'FINISHED'}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+    
+    def draw(self, context):
+        layout = self.layout
+        
+        # 정보 표시 박스
+        box = layout.box()
+        col = box.column(align=True)
+        
+        # 메쉬 이름 표시
+        row = col.row()
+        row.label(text="Mesh:", icon='MESH_DATA')
+        row.label(text=self.mesh_name)
+        
+        # 쉐이프 키 이름 표시
+        row = col.row()
+        row.label(text="Shape Key:", icon='SHAPEKEY_DATA')
+        row.label(text=self.shape_key_name)
+        
+        # 변환 타입 표시
+        row = col.row()
+        row.label(text="Transform:", icon='DRIVER_TRANSFORM')
+        # TRANSFORM_ITEMS에서 현재 transform_type에 해당하는 레이블 찾기
+        transform_label = next((item[1] for item in utils.TRANSFORM_ITEMS 
+                            if item[0] == self.transform_type), 
+                            self.transform_type)
+        row.label(text=transform_label)
+        
+        # 구분선
+        layout.separator()
+        
+        # 슬라이더 UI
+        layout.prop(self, "value", slider=True)
     
 class OBJECT_OT_create_shape_key_slider(Operator):
     """Create a new slider for shape key control"""
@@ -508,7 +562,8 @@ classes = (
     SHAPEKEY_PT_tools_creator,
     OBJECT_OT_find_metarig,
     OBJECT_OT_find_rigify,
-    OBJECT_OT_create_shape_key_slider,
+    OBJECT_OT_create_shape_key_slider,    
+    SHAPE_OT_adjust_driver_value,
     OBJECT_OT_assign_shape_key_widget,
     SHAPEKEY_PT_sync_settings,
 )

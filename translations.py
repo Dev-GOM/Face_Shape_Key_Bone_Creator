@@ -76,7 +76,6 @@ ko_KR = {
     ("*", "Selected rigify armature"): "선택된 리기파이 아마추어",
     ("*", "Auto-find rigify rig in scene"): "씬에서 리기파이 리그 자동 검색",
     ("*", "Add new bone for shape key control"): "쉐이프 키 제어용 새 본 추가",
-    ("*", "Influence"): "영향도",
     ("*", "Driver influence strength multiplier"): "드라이버 영향도 배수 설정",
     ("*", "Bone Name"): "본 이름",
     ("*", "Name of the new bone (editable)"): "새로운 본의 이름 (수정 가능)",
@@ -94,6 +93,7 @@ ko_KR = {
     ("*", "Text content for the widget"): "위젯에 사용할 텍스트 내용",
     ("*", "Type of transform to control the shape key"): "쉐이프 키를 제어할 변형 타입 (위치/회전/크기)",
     ("*", "Influence"): "영향도",
+    ("*", "Multiplier"): "영향도",
     ("*", "Driver influence multiplier (higher value = stronger effect)"): "드라이버 영향도 배수 (높을수록 효과가 강함)",
     ("*", "Select shape key to create text for"): "텍스트를 생성할 쉐이프 키 선택",
     ("*", "Enter custom text for the object"): "오브젝트의 사용자 정의 텍스트 입력",
@@ -157,6 +157,8 @@ ko_KR = {
     ("*", "Select Drivers to Delete:"): "삭제할 드라이버 선택:",
     ("*", "Selected shape key drivers will be deleted"): "선택한 쉐이프 키 드라이버가 삭제됩니다",
     ("*", "Select mesh containing shape key drivers"): "쉐이프 키 드라이버가 있는 메쉬 선택",
+    ("*", "Adjust driver multiplier value"): "드라이버 영향도 조정",
+    ("*", "Driver multiplier value"): "드라이버 영향도",
 }
 
 # 일본어 번역
@@ -237,7 +239,6 @@ ja_JP = {
     ("*", "Selected rigify armature"): "選択されたRigifyアーマチュア",
     ("*", "Auto-find rigify rig in scene"): "シーンでRigifyリグを自動検索",
     ("*", "Add new bone for shape key control"): "シェイプキー制御用の新しいボーンを追加",
-    ("*", "Influence"): "影響度",
     ("*", "Driver influence strength multiplier"): "ドライバーの影響度の倍率設定",
     ("*", "Bone Name"): "ボーン名",
     ("*", "Name of the new bone (editable)"): "新しいボーンの名前（編集可能）",
@@ -255,6 +256,7 @@ ja_JP = {
     ("*", "Text content for the widget"): "ウィジェットのテキスト内容",
     ("*", "Type of transform to control the shape key"): "シェイプキーを制御する変形タイプ（位置/回転/スケール）",
     ("*", "Influence"): "影響度",
+    ("*", "Multiplier"): "影響度",
     ("*", "Driver influence multiplier (higher value = stronger effect)"): "ドライバーの影響度倍率（高いほど効果が強い）",    
     ("*", "Select shape key to create text for"): "テキストを作成するシェイプキーを選択",
     ("*", "Enter custom text for the object"): "オブジェクトのカスタムテキストを入力",
@@ -318,6 +320,8 @@ ja_JP = {
     ("*", "Select Drivers to Delete:"): "削除するドライバーを選択：",
     ("*", "Selected shape key drivers will be deleted"): "選択したシェイプキードライバーが削除されます",
     ("*", "Select mesh containing shape key drivers"): "シェイプキードライバーを含むメッシュを選択",
+    ("*", "Adjust driver multiplier value"): "ドライバーの影響度を調整",
+    ("*", "Driver multiplier value"): "ドライバーの影響度",
 }
 
 # 중국어 번역
@@ -398,7 +402,6 @@ zh_CN = {
     ("*", "Selected rigify armature"): "已选择的Rigify骨架",
     ("*", "Auto-find rigify rig in scene"): "在场景中自动查找Rigify骨架",
     ("*", "Add new bone for shape key control"): "为形态键控制添加新骨骼",
-    ("*", "Influence"): "影响度",
     ("*", "Driver influence strength multiplier"): "驱动器影响强度倍数设置",
     ("*", "Bone Name"): "骨骼名称",
     ("*", "Name of the new bone (editable)"): "新骨骼的名称（可编辑）",
@@ -416,6 +419,7 @@ zh_CN = {
     ("*", "Text content for the widget"): "部件的文本内容",
     ("*", "Type of transform to control the shape key"): "控制形态键的变换类型（位置/旋转/缩放）",
     ("*", "Influence"): "影响度",
+    ("*", "Multiplier"): "影响度",
     ("*", "Driver influence multiplier (higher value = stronger effect)"): "驱动器影响度倍数（数值越高效果越强）",
     ("*", "Select shape key to create text for"): "选择要创建文本的形态键",
     ("*", "Enter custom text for the object"): "输入对象的自定义文本",
@@ -479,6 +483,8 @@ zh_CN = {
     ("*", "Select Drivers to Delete:"): "选择要删除的驱动器：",
     ("*", "Selected shape key drivers will be deleted"): "选定的形态键驱动器将被删除",
     ("*", "Select mesh containing shape key drivers"): "选择包含形态键驱动器的网格",
+    ("*", "Adjust driver multiplier value"): "调整驱动器影响度",
+    ("*", "Driver multiplier value"): "驱动器影响度",
 }
 
 # 전체 번역 딕셔너리
