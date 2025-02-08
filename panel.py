@@ -165,7 +165,7 @@ class SHAPEKEY_PT_tools_creator(Panel):
             row.enabled = (context.mode == 'EDIT_ARMATURE' and 
                         is_rigify_bone)
 
-        if context.mode == 'POSE':            
+        if context.mode == 'POSE':
             if available_meshes:
                 box = layout.box()
                 col = box.column()

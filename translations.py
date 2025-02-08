@@ -159,6 +159,8 @@ ko_KR = {
     ("*", "Select mesh containing shape key drivers"): "쉐이프 키 드라이버가 있는 메쉬 선택",
     ("*", "Adjust driver multiplier value"): "드라이버 영향도 조정",
     ("*", "Driver multiplier value"): "드라이버 영향도",
+    ("*", "Regenerate (Preserve Widgets)"): "리제네레이트 (위젯 유지)",
+    ("*", "Regenerate rigify rig while preserving custom widgets"): "커스텀 위젯을 유지하면서 리기파이 리그 재생성",
 }
 
 # 일본어 번역
@@ -322,6 +324,8 @@ ja_JP = {
     ("*", "Select mesh containing shape key drivers"): "シェイプキードライバーを含むメッシュを選択",
     ("*", "Adjust driver multiplier value"): "ドライバーの影響度を調整",
     ("*", "Driver multiplier value"): "ドライバーの影響度",
+    ("*", "Regenerate (Preserve Widgets)"): "再生成（ウィジェット保持）",
+    ("*", "Regenerate rigify rig while preserving custom widgets"): "カスタムウィジェットを保持したままRigifyリグを再生成",
 }
 
 # 중국어 번역
@@ -485,6 +489,8 @@ zh_CN = {
     ("*", "Select mesh containing shape key drivers"): "选择包含形态键驱动器的网格",
     ("*", "Adjust driver multiplier value"): "调整驱动器影响度",
     ("*", "Driver multiplier value"): "驱动器影响度",
+    ("*", "Regenerate (Preserve Widgets)"): "重新生成（保留部件）",
+    ("*", "Regenerate rigify rig while preserving custom widgets"): "保留自定义部件重新生成Rigify骨架",
 }
 
 # 전체 번역 딕셔너리

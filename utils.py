@@ -117,7 +117,6 @@ def get_available_meshes(context):
              if (obj.type == 'MESH' and 
                  obj.visible_get() and
                  obj.data.shape_keys)]
-    print(f"Found meshes: {[mesh.name for mesh in meshes]}")  # 디버그용
     return meshes
 
 def draw_shape_key_list(layout, mesh_obj):
@@ -615,10 +614,13 @@ def get_shape_key_drivers(self, context):
     return items
 
 def store_custom_widgets(armature):
-    """Store custom widget information for bones"""
+    """Store custom widget information for bones
+    Only stores custom widgets that start with 'WGT_shape_key_ctrl'
+    """
     stored_widgets = {}
     for pose_bone in armature.pose.bones:
-        if pose_bone.custom_shape:
+        if (pose_bone.custom_shape and 
+            pose_bone.custom_shape.name.startswith('WGT_shape_key_ctrl')):
             stored_widgets[pose_bone.name] = {
                 'widget': pose_bone.custom_shape,
                 'size': pose_bone.use_custom_shape_bone_size,
@@ -633,8 +635,87 @@ def restore_custom_widgets(armature, stored_widgets):
     for bone_name, widget_info in stored_widgets.items():
         if bone_name in armature.pose.bones:
             pose_bone = armature.pose.bones[bone_name]
-            pose_bone.custom_shape = widget_info['widget']
-            pose_bone.use_custom_shape_bone_size = widget_info['size']
-            pose_bone.custom_shape_scale_xyz = widget_info['scale']
-            pose_bone.custom_shape_translation = widget_info['translation']
-            pose_bone.custom_shape_rotation_euler = widget_info['rotation']
+            # 위젯이 여전히 존재하는지 확인
+            if widget_info['widget'] and widget_info['widget'].name in bpy.data.objects:
+                pose_bone.custom_shape = widget_info['widget']
+                pose_bone.use_custom_shape_bone_size = widget_info['size']
+                pose_bone.custom_shape_scale_xyz = widget_info['scale']
+                pose_bone.custom_shape_translation = widget_info['translation']
+                pose_bone.custom_shape_rotation_euler = widget_info['rotation']
+
+def transform_handler(scene):
+    """Transform handler for auto-sync"""
+    try:
+        if (scene.is_sync_enabled and 
+            scene.metarig and 
+            scene.rigify_rig and 
+            bpy.context.mode == 'EDIT_ARMATURE' and
+            bpy.context.active_bone and
+            bpy.context.active_object == scene.rigify_rig):
+            
+            # 현재 본 정보
+            rigify_bone = bpy.context.active_bone
+            bone_name = rigify_bone.name
+            
+            # 연결된 위젯 찾기
+            widget_name = f"WGT_{bone_name}"
+            widget_collection = None
+            widget_objects = []
+            
+            # 모든 컬렉션에서 위젯 검색
+            for collection in bpy.data.collections:
+                for obj in collection.objects:
+                    if obj.name.startswith(widget_name):
+                        widget_collection = collection
+                        widget_objects = [obj for obj in collection.objects 
+                                        if obj.name.startswith(('WGT_', 'SLIDE_', 'TEXT_'))]
+                        break
+                if widget_collection:
+                    break
+            
+            # 위젯이 있는 경우 위치 업데이트
+            if widget_objects:
+                # 쉐이프 키 찾기
+                shape_key = None
+                for obj in widget_objects:
+                    if obj.name.startswith('WGT_'):
+                        # 위젯 이름에서 본 이름 추출
+                        widget_bone_name = obj.name[4:]  # 'WGT_' 제외
+                        # 연결된 메쉬에서 쉐이프 키 찾기
+                        for mesh_obj in bpy.data.objects:
+                            if (mesh_obj.type == 'MESH' and 
+                                mesh_obj.data.shape_keys and 
+                                mesh_obj.data.shape_keys.animation_data):
+                                for driver in mesh_obj.data.shape_keys.animation_data.drivers:
+                                    if widget_bone_name in driver.data_path:
+                                        shape_key_name = driver.data_path.split('"')[1]
+                                        shape_key = mesh_obj.data.shape_keys.key_blocks[shape_key_name]
+                                        break
+                                if shape_key:
+                                    break
+                        break
+                
+                # 본 매트릭스 계산
+                bone_matrix = scene.metarig.matrix_world @ scene.metarig.pose.bones[bone_name].matrix
+                
+                # 트랜스폼 계산 및 적용
+                transforms = calculate_widget_transforms(
+                    bone_matrix,
+                    scene.metarig.pose.bones[bone_name].length,
+                    shape_key
+                )
+                
+                # 각 위젯 오브젝트 업데이트
+                for obj in widget_objects:
+                    if obj.name.startswith('WGT_'):
+                        apply_widget_transforms(obj, transforms, 'WGT')
+                    elif obj.name.startswith('SLIDE_'):
+                        apply_widget_transforms(obj, transforms, 'SLIDE')
+                    elif obj.name.startswith('TEXT_'):
+                        apply_widget_transforms(obj, transforms, 'TEXT')
+            
+            # 본 동기화 실행
+            bpy.ops.edit.sync_metarig_bone()
+            
+    except Exception as e:
+        print(f"Error in transform handler: {str(e)}")

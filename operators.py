@@ -844,21 +844,6 @@ class EDIT_OT_sync_metarig_bone(Operator):
             
             self.report({'ERROR'}, f"Error syncing bones: {str(e)}")
             return {'CANCELLED'}
-
-def transform_handler(scene):
-    """Transform handler for auto-sync"""
-    try:
-        if (scene.is_sync_enabled and 
-            scene.metarig and 
-            scene.rigify_rig and 
-            bpy.context.mode == 'EDIT_ARMATURE' and
-            bpy.context.active_bone and
-            bpy.context.active_object == scene.rigify_rig):
-            
-            bpy.ops.edit.sync_metarig_bone()
-            
-    except Exception as e:
-        print(f"Error in transform handler: {str(e)}")
         
 class EDIT_OT_delete_shape_key_bone(Operator):
     """Delete shape key bone and related objects"""
@@ -1101,6 +1086,24 @@ class ARMATURE_OT_rigify_regenerate_with_widgets(Operator):
         # 저장된 커스텀 위젯 정보 복원
         utils.restore_custom_widgets(new_rigify_rig, stored_widgets)
 
+        # 메타리그 비활성화
+        metarig = context.scene.metarig
+        if metarig:
+            metarig.hide_viewport = True
+            metarig.hide_select = True
+            metarig.hide_set(True)
+
+        # 모든 선택 해제
+        bpy.ops.object.select_all(action='DESELECT')
+
+        # 리기파이 리그 선택 및 활성화
+        new_rigify_rig.select_set(True)
+        context.view_layer.objects.active = new_rigify_rig
+
+        # 포즈 모드로 전환
+        bpy.ops.object.mode_set(mode='POSE')
+
+        self.report({'INFO'}, "Rigify regenerated and widgets preserved")
         return {'FINISHED'}
 
 classes = (

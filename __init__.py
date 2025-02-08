@@ -90,8 +90,8 @@ def register():
         )
         
         # Register handlers
-        if operators.transform_handler not in bpy.app.handlers.depsgraph_update_post:
-            bpy.app.handlers.depsgraph_update_post.append(operators.transform_handler)
+        if utils.transform_handler not in bpy.app.handlers.depsgraph_update_post:
+            bpy.app.handlers.depsgraph_update_post.append(utils.transform_handler)
         
         print("Shape Key Control Creator: Registration successful")
         
@@ -102,8 +102,8 @@ def unregister():
     """Unregister all modules and translations"""
     try:
         # Unregister handlers
-        if operators.transform_handler in bpy.app.handlers.depsgraph_update_post:
-            bpy.app.handlers.depsgraph_update_post.remove(operators.transform_handler)
+        if utils.transform_handler in bpy.app.handlers.depsgraph_update_post:
+            bpy.app.handlers.depsgraph_update_post.remove(utils.transform_handler)
         
         # Unregister properties
         del bpy.types.Scene.is_sync_enabled
