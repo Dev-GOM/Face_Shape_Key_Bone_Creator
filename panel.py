@@ -161,7 +161,7 @@ class SHAPEKEY_PT_tools_creator(Panel):
                 
                 # 헤더 (화살표 + 레이블)
                 row = col.row(align=True)
-                is_expanded = context.window_manager.get("show_shape_keys", False)                
+                is_expanded = context.window_manager.show_shape_keys
                 row.prop(context.window_manager, "show_shape_keys",
                         icon='DOWNARROW_HLT' if is_expanded else 'RIGHTARROW',
                         icon_only=True, emboss=False)
@@ -169,15 +169,19 @@ class SHAPEKEY_PT_tools_creator(Panel):
                 
                 # 폴드아웃 내용
                 if is_expanded:
-                    col = box.column(align=True)
+                    # 스크롤 영역 생성
+                    scroll_box = box.box()
+                    scroll = scroll_box.column_flow(columns=1, align=True)
+                    scroll.scale_y = 1  # 행 높이 조정
+                    
                     for mesh_obj in available_meshes:
-                        col.label(text=f"Mesh: {mesh_obj.name}", icon='MESH_DATA')
+                        scroll.label(text=f"Mesh: {mesh_obj.name}", icon='MESH_DATA')
                         for key_block in mesh_obj.data.shape_keys.key_blocks[1:]:
-                            row = col.row()
+                            row = scroll.row()
                             row.prop(key_block, "value", text=key_block.name)
             else:
                 layout.label(text="No meshes with shape keys found")
-        
+
         # 오브젝트 모드 UI
         elif obj and obj.type == 'MESH':
             if obj.data.shape_keys:
@@ -188,7 +192,7 @@ class SHAPEKEY_PT_tools_creator(Panel):
                 
                 # 헤더 (화살표 + 레이블)
                 row = col.row(align=True)
-                is_expanded = context.window_manager.get("show_shape_keys", False)
+                is_expanded = context.window_manager.show_shape_keys
                 row.prop(context.window_manager, "show_shape_keys",
                         icon='DOWNARROW_HLT' if is_expanded else 'RIGHTARROW',
                         icon_only=True, emboss=False)
@@ -196,9 +200,13 @@ class SHAPEKEY_PT_tools_creator(Panel):
                 
                 # 폴드아웃 내용
                 if is_expanded:
-                    col = box.column(align=True)
+                    # 스크롤 영역 생성
+                    scroll_box = box.box()
+                    scroll = scroll_box.column_flow(columns=1, align=True)
+                    scroll.scale_y = 1  # 행 높이 조정
+                    
                     for key_block in obj.data.shape_keys.key_blocks[1:]:
-                        row = col.row()
+                        row = scroll.row()
                         row.prop(key_block, "value", text=key_block.name)
             else:
                 layout.label(text="No shape keys found")
