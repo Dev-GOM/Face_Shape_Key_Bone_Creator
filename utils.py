@@ -132,37 +132,61 @@ def draw_shape_key_list(layout, mesh_obj):
         value_row = row.split(factor=0.7, align=True)
         value_row.prop(key_block, "value", text=key_block.name)
         
-        # animation_data와 drivers가 있는 경우에만 드라이버 UI 표시
-        if (shape_keys.animation_data and 
-            shape_keys.animation_data.drivers):
+        if shape_keys.animation_data and shape_keys.animation_data.drivers:
             for driver in shape_keys.animation_data.drivers:
                 if driver.data_path == f'key_blocks["{key_block.name}"].value':
                     var = driver.driver.variables[0]
                     transform_type = var.targets[0].transform_type
                     current_value = get_driver_value(driver, transform_type)
                     
-                    # multiplier UI
+                    # UI 처리
                     sub_row = value_row.row(align=True)
-                    props = sub_row.operator("shape.adjust_driver_value", 
-                                           text=f"{current_value:.1f}", 
-                                           icon='DRIVER')
-                    props.mesh_name = mesh_obj.name
-                    props.shape_key_name = key_block.name
-                    props.transform_type = transform_type
-                    props.value = current_value
+                    if isinstance(current_value, str):  # 문자열인 경우
+                        if current_value == "Custom":
+                            sub_row.label(text="Custom", icon='DRIVER')
+                        else:
+                            # 수식을 표시
+                            sub_row.label(text=current_value, icon='DRIVER')
+                    else:
+                        # 숫자값인 경우 기존 UI 사용
+                        props = sub_row.operator("shape.adjust_driver_value", 
+                                              text=f"{current_value:.1f}", 
+                                              icon='DRIVER')
+                        props.mesh_name = mesh_obj.name
+                        props.shape_key_name = key_block.name
+                        props.transform_type = transform_type
+                        props.value = current_value
                     break
 
 def get_driver_value(driver, transform_type):
     """Calculate current value of driver"""
     try:
-        if 'ROT' in transform_type:
-            return float(driver.driver.expression.split('*')[2]) / 57.2958
-        elif 'LOC' in transform_type:
-            return float(driver.driver.expression.split('*')[1])
-        else:  # SCALE
-            return float(driver.driver.expression.split('*')[1])
-    except:
-        return 1.0  # 기본값
+        expression = driver.driver.expression
+        
+        # 애드온으로 만든 표준 형식 체크
+        if 'bone_transform' in expression:
+            if 'ROT' in transform_type:
+                return float(expression.split('*')[2]) / 57.2958
+            elif 'LOC' in transform_type:
+                return float(expression.split('*')[1])
+            else:  # SCALE
+                return float(expression.split('*')[1])
+        
+        # 사용자 정의 드라이버 처리
+        else:
+            # 복잡한 수식인 경우 원본 표시
+            if any(op in expression for op in ['+', '-', '*', '/', '(', ')']):
+                return expression  # 수식 그대로 반환
+            
+            # 단순 숫자만 있는 경우
+            try:
+                return float(expression)
+            except:
+                return "Custom"  # 파싱 불가능한 경우
+            
+    except Exception as e:
+        print(f"Error parsing driver value: {e}")
+        return "Custom"
 
 def update_driver_expression(driver, value, transform_type, mesh_obj=None):
     """
