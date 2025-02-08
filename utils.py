@@ -206,6 +206,91 @@ def update_driver_expression(driver, value, transform_type, mesh_obj=None):
     # 메쉬 객체가 제공된 경우 Basis 선택
     if mesh_obj:
         mesh_obj.active_shape_key_index = 0
+        
+def calculate_widget_transforms(bone_matrix, bone_length, shape_key=None):
+    """Calculate widget transforms based on bone and shape key
+    
+    Args:
+        bone_matrix: World matrix of the bone
+        bone_length: Length of the bone
+        shape_key: Optional shape key for offset calculation
+    
+    Returns:
+        dict: Dictionary containing transform information
+    """
+    bone_loc = bone_matrix.translation
+    bone_rot = bone_matrix.to_euler('XYZ')
+    bone_rot_quat = bone_matrix.to_quaternion()
+    
+    # 기본 스케일과 오프셋 설정
+    base_scale = bone_length * 0.5
+    slider_width = bone_length * 2
+    slider_height = bone_length * 0.1
+    text_scale = bone_length * 0.4
+    
+    # 슬라이더 오프셋 계산
+    base_offset = mathutils.Vector((-slider_width / 2, 0, 0))
+    
+    # 쉐이프 키 범위에 따른 오프셋 조정
+    if shape_key:
+        min_value = shape_key.slider_min
+        max_value = shape_key.slider_max
+        
+        if min_value == -1 and max_value == 1:
+            base_offset = mathutils.Vector((0, 0, 0))
+        elif not (min_value == 0 and max_value == 1):
+            total_range = max_value - min_value
+            mid_value = (max_value + min_value) / 2
+            offset_ratio = -mid_value / total_range
+            x_offset = slider_width * offset_ratio
+            base_offset += mathutils.Vector((x_offset, 0, 0))
+    
+    # 오프셋을 본의 회전에 맞춰 회전
+    base_offset.rotate(bone_rot_quat)
+    
+    # 텍스트 오프셋 계산
+    text_offset = mathutils.Vector((0, bone_length * 0.3, 0))
+    text_offset.rotate(bone_rot_quat)
+    
+    return {
+        "bone_loc": bone_loc,
+        "bone_rot": bone_rot,
+        "bone_rot_quat": bone_rot_quat,
+        "base_scale": base_scale,
+        "slider_width": slider_width,
+        "slider_height": slider_height,
+        "text_scale": text_scale,
+        "base_offset": base_offset,
+        "text_offset": text_offset
+    }
+
+def apply_widget_transforms(obj, transforms, obj_type):
+    """Apply calculated transforms to widget object
+    
+    Args:
+        obj: Widget object to transform
+        transforms: Dictionary of transform information
+        obj_type: Type of widget ('TEXT', 'SLIDE', or 'WGT')
+    """
+    if obj_type == 'TEXT':
+        obj.location = transforms["bone_loc"] + transforms["text_offset"]
+        obj.rotation_euler = transforms["bone_rot"]
+        obj.scale = mathutils.Vector((transforms["text_scale"],) * 3)
+        
+    elif obj_type == 'SLIDE':
+        obj.location = transforms["bone_loc"] - transforms["base_offset"]
+        obj.rotation_mode = 'XYZ'
+        obj.rotation_euler = (math.radians(90), 
+                            transforms["bone_rot"].y, 
+                            transforms["bone_rot"].z)
+        obj.scale = mathutils.Vector((transforms["slider_width"], 
+                                    transforms["slider_height"], 
+                                    transforms["base_scale"]))
+        
+    elif obj_type == 'WGT':
+        obj.location = transforms["bone_loc"]
+        obj.rotation_euler = transforms["bone_rot"]
+        obj.scale = mathutils.Vector((transforms["base_scale"],) * 3)
 
 def setup_bone_constraints(pose_bone, transform_type):
     """Set up bone constraints for shape key control
@@ -528,3 +613,28 @@ def get_shape_key_drivers(self, context):
                 continue
     
     return items
+
+def store_custom_widgets(armature):
+    """Store custom widget information for bones"""
+    stored_widgets = {}
+    for pose_bone in armature.pose.bones:
+        if pose_bone.custom_shape:
+            stored_widgets[pose_bone.name] = {
+                'widget': pose_bone.custom_shape,
+                'size': pose_bone.use_custom_shape_bone_size,
+                'scale': pose_bone.custom_shape_scale_xyz,
+                'translation': pose_bone.custom_shape_translation,
+                'rotation': pose_bone.custom_shape_rotation_euler
+            }
+    return stored_widgets
+
+def restore_custom_widgets(armature, stored_widgets):
+    """Restore custom widget information to bones"""
+    for bone_name, widget_info in stored_widgets.items():
+        if bone_name in armature.pose.bones:
+            pose_bone = armature.pose.bones[bone_name]
+            pose_bone.custom_shape = widget_info['widget']
+            pose_bone.use_custom_shape_bone_size = widget_info['size']
+            pose_bone.custom_shape_scale_xyz = widget_info['scale']
+            pose_bone.custom_shape_translation = widget_info['translation']
+            pose_bone.custom_shape_rotation_euler = widget_info['rotation']

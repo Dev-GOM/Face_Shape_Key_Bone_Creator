@@ -110,6 +110,13 @@ class SHAPEKEY_PT_tools_creator(Panel):
         row.operator("object.find_rigify_rig", 
                     text="", 
                     icon='EYEDROPPER')
+    
+        # 리기파이 리제네레이트 버튼
+        box = layout.box()
+        row = box.row()
+        row.operator("armature.rigify_regenerate_with_widgets", 
+                    text="Regenerate (Preserve Widgets)", 
+                    icon='ARMATURE_DATA')
 
         # 본 추가 버튼
         if context.scene.metarig:
@@ -423,6 +430,13 @@ class OBJECT_OT_create_shape_key_slider(Operator):
             'LOC_X',
             current_value
         )
+
+        if not success:
+            self.report({'ERROR'}, f"Failed to setup driver: {error}")
+            return {'CANCELLED'}
+
+        self.report({'INFO'}, f"Successfully created shape key slider")
+        return {'FINISHED'}
 
 class OBJECT_OT_assign_shape_key_widget(Operator):
     """Assign widget to selected bone"""

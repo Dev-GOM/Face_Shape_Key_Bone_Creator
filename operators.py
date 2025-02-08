@@ -303,73 +303,25 @@ class OBJECT_OT_apply_shape_key_to_bone(Operator):
                     return {'CANCELLED'}
                 
                 # 2. 쉐이프 컬렉션 처리
-                if self.shape_collection:  # 컬렉션이 선택된 경우
+                if self.shape_collection:
                     collection = bpy.data.collections.get(self.shape_collection)
                     if collection and collection.objects:
-                        # 모드에 따라 적절한 매트릭스 가져오기
-                        if edit_bone:
-                            bone_matrix = armature.matrix_world @ edit_bone.matrix
-                            bone_length = edit_bone.length
-                        else:
-                            bone_matrix = armature.matrix_world @ pose_bone.matrix
-                            bone_length = pose_bone.length
+                        # 트랜스폼 계산
+                        bone_matrix = armature.matrix_world @ pose_bone.matrix
+                        transforms = utils.calculate_widget_transforms(
+                            bone_matrix, 
+                            pose_bone.length, 
+                            shape_key
+                        )
                         
-                        bone_loc = bone_matrix.translation
-                        bone_rot = bone_matrix.to_euler('XYZ')
-                        bone_rot_quat = bone_matrix.to_quaternion()
-                        
-                        # 스케일 계산
-                        base_scale = bone_length * 0.5
-                        slider_width = bone_length * 2
-                        slider_height = bone_length * 0.1
-                        text_scale = bone_length * 0.4
-                        
-                        # 슬라이더 오프셋 계산
-                        base_offset = mathutils.Vector((-slider_width / 2, 0, 0))
-                        
-                        # shape_key 범위에 따른 오프셋 조정
-                        if shape_key:
-                            min_value = shape_key.slider_min
-                            max_value = shape_key.slider_max
-                            
-                            if min_value == -1 and max_value == 1:
-                                base_offset = mathutils.Vector((0, 0, 0))
-                            elif not (min_value == 0 and max_value == 1):
-                                total_range = max_value - min_value
-                                mid_value = (max_value + min_value) / 2
-                                offset_ratio = -mid_value / total_range
-                                x_offset = slider_width * offset_ratio
-                                base_offset += mathutils.Vector((x_offset, 0, 0))
-                        
-                        # 오프셋을 본의 회전에 맞춰 회전
-                        base_offset.rotate(bone_rot_quat)
-                        
-                        # 위젯 오브젝트 찾기 및 설정
+                        # 위젯 오브젝트에 적용
                         for obj in collection.objects:
                             if obj.name.startswith('WGT_'):
-                                # 본의 커스텀 쉐이프로 설정
-                                pose_bone.custom_shape = obj
-                                pose_bone.use_custom_shape_bone_size = True
-                                
-                                # 위젯 위치 및 회전 설정
-                                obj.location = bone_loc
-                                obj.rotation_euler = bone_rot
-                                obj.scale = mathutils.Vector((base_scale, base_scale, base_scale))
-                                
+                                utils.apply_widget_transforms(obj, transforms, 'WGT')
                             elif obj.name.startswith('SLIDE_'):
-                                # 슬라이더 위치 및 회전 설정
-                                obj.location = bone_loc - base_offset
-                                obj.rotation_mode = 'XYZ'
-                                obj.rotation_euler = (math.radians(90), bone_rot.y, bone_rot.z)
-                                obj.scale = mathutils.Vector((slider_width, slider_height, base_scale))
-                                
+                                utils.apply_widget_transforms(obj, transforms, 'SLIDE')
                             elif obj.name.startswith('TEXT_'):
-                                # 텍스트 위치 및 회전 설정
-                                text_offset = mathutils.Vector((0, bone_length * 0.3, 0))
-                                text_offset.rotate(bone_rot_quat)
-                                obj.location = bone_loc + text_offset
-                                obj.rotation_euler = bone_rot
-                                obj.scale = mathutils.Vector((text_scale, text_scale, text_scale))
+                                utils.apply_widget_transforms(obj, transforms, 'TEXT')
                 else:  # 컬렉션이 선택되지 않은 경우
                     # 새 컬렉션 생성
                     new_collection = bpy.data.collections.new(f"ShapeObjects_{bone_name}")
@@ -828,48 +780,48 @@ class EDIT_OT_sync_metarig_bone(Operator):
             
             # 6. 쉐이프 컬렉션 처리
             if shape_collection and shape_collection.objects:
-                # 본의 매트릭스와 위치 정보 계산
-                bone_matrix = metarig.matrix_world @ metarig.pose.bones[bone_name].matrix
-                bone_loc = bone_matrix.translation
-                bone_rot = bone_matrix.to_euler('XYZ')
-                bone_length = metarig.pose.bones[bone_name].length
-                
-                # 기본 스케일과 오프셋 설정
-                base_scale = bone_length * 0.5
-                slider_width = bone_length * 2
-                slider_height = bone_length * 0.1
-                text_scale = bone_length * 0.4
-                
-                # 본의 회전 정보 계산
-                bone_rot_quat = bone_matrix.to_quaternion()
-                
+                # 쉐이프 키 찾기
+                shape_key = None
                 for obj in shape_collection.objects:
-                    if 'TEXT_' in obj.name:  # 텍스트 오브젝트
-                        text_offset = mathutils.Vector((0, bone_length * 0.3, 0))
-                        text_offset.rotate(bone_rot_quat)
-                        obj.location = bone_loc + text_offset
-                        obj.rotation_euler = bone_rot
-                        obj.scale = mathutils.Vector((text_scale, text_scale, text_scale))
-                        
-                    elif 'SLIDE_' in obj.name:  # 슬라이더 라인
-                        obj.location = bone_loc
-                        obj.rotation_mode = 'XYZ'
-                        obj.rotation_euler = (math.radians(90), bone_rot.y, bone_rot.z)
-                        obj.scale = mathutils.Vector((slider_width, slider_height, base_scale))
-                        
-                    else:  # 핸들 또는 기타 오브젝트
-                        obj.location = bone_loc
-                        obj.rotation_euler = bone_rot
-                        obj.scale = mathutils.Vector((base_scale, base_scale, base_scale))
+                    if obj.name.startswith('WGT_'):
+                        # 위젯 이름에서 본 이름 추출
+                        widget_bone_name = obj.name[4:]  # 'WGT_' 제외
+                        # 연결된 메쉬에서 쉐이프 키 찾기
+                        for mesh_obj in bpy.data.objects:
+                            if (mesh_obj.type == 'MESH' and 
+                                mesh_obj.data.shape_keys and 
+                                mesh_obj.data.shape_keys.animation_data):
+                                for driver in mesh_obj.data.shape_keys.animation_data.drivers:
+                                    if widget_bone_name in driver.data_path:
+                                        shape_key_name = driver.data_path.split('"')[1]
+                                        shape_key = mesh_obj.data.shape_keys.key_blocks[shape_key_name]
+                                        break
+                                if shape_key:
+                                    break
+                        break
+
+                # 트랜스폼 계산
+                bone_matrix = metarig.matrix_world @ metarig.pose.bones[bone_name].matrix
+                transforms = utils.calculate_widget_transforms(
+                    bone_matrix,
+                    metarig.pose.bones[bone_name].length,
+                    shape_key
+                )
+                
+                # 위젯 오브젝트에 적용
+                for obj in shape_collection.objects:
+                    if obj.name.startswith('TEXT_'):
+                        utils.apply_widget_transforms(obj, transforms, 'TEXT')
+                    elif obj.name.startswith('SLIDE_'):
+                        utils.apply_widget_transforms(obj, transforms, 'SLIDE')
+                    elif obj.name.startswith('WGT_'):
+                        utils.apply_widget_transforms(obj, transforms, 'WGT')
             
             # 7. 리기파이 리그로 돌아가기
             bpy.ops.object.select_all(action='DESELECT')
             rigify_rig.select_set(True)
             context.view_layer.objects.active = rigify_rig
             bpy.ops.object.mode_set(mode='EDIT')
-            
-            # 쉐이프 키 업데이트
-            self.update_linked_shape_keys(context, metarig.data.bones[bone_name])
             
             # 메타리그 원래 상태로 복원
             metarig.hide_viewport = was_hidden
@@ -892,17 +844,6 @@ class EDIT_OT_sync_metarig_bone(Operator):
             
             self.report({'ERROR'}, f"Error syncing bones: {str(e)}")
             return {'CANCELLED'}
-        
-    def update_linked_shape_keys(self, context, bone):
-        """본에 연결된 쉐이프 키 업데이트"""
-        for obj in context.scene.objects:
-            if obj.type == 'MESH' and obj.data.shape_keys and obj.data.shape_keys.animation_data:
-                for driver in obj.data.shape_keys.animation_data.drivers:
-                    for var in driver.driver.variables:
-                        if (var.type == 'TRANSFORMS' and 
-                            var.targets[0].id == context.scene.metarig and
-                            var.targets[0].bone_target == bone.name):
-                            driver.driver.expression = driver.driver.expression
 
 def transform_handler(scene):
     """Transform handler for auto-sync"""
@@ -1139,6 +1080,28 @@ class EDIT_OT_delete_shape_key_bone(Operator):
         except Exception as e:
             self.report({'ERROR'}, f"Error deleting bone: {str(e)}")
             return {'CANCELLED'}
+        
+class ARMATURE_OT_rigify_regenerate_with_widgets(Operator):
+    """Regenerate rigify rig while preserving custom widgets"""
+    bl_idname = "armature.rigify_regenerate_with_widgets"
+    bl_label = "Regenerate Rigify (Preserve Widgets)"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        # 현재 리기파이 리그의 커스텀 위젯 정보 저장
+        rigify_rig = context.scene.rigify_rig
+        stored_widgets = utils.store_custom_widgets(rigify_rig)
+
+        # 리기파이 리제네레이트 실행
+        bpy.ops.pose.rigify_generate()
+
+        # 새로운 리기파이 리그 찾기
+        new_rigify_rig = context.active_object
+
+        # 저장된 커스텀 위젯 정보 복원
+        utils.restore_custom_widgets(new_rigify_rig, stored_widgets)
+
+        return {'FINISHED'}
 
 classes = (
     OBJECT_OT_text_input_dialog,
@@ -1148,4 +1111,5 @@ classes = (
     OBJECT_OT_show_select_mesh_popup,
     EDIT_OT_sync_metarig_bone,
     EDIT_OT_delete_shape_key_bone,
+    ARMATURE_OT_rigify_regenerate_with_widgets,
 )
