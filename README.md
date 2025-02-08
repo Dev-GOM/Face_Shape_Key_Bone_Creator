@@ -19,6 +19,126 @@ Shape Key Bone Control Creator is a Blender add-on that helps you visualize and 
 ## Version History / 버전 기록 / バージョン履歴 / 版本历史
 
 <details>
+<summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.1.8 (2025-02-09)</code></summary>
+
+<details>
+<summary><code style="color: #28a745;">🇺🇸 English</code></summary>
+
+**Widget System Enhancement**
+- Add mesh and shape key selection to sync operator
+  - Add direct shape key selection UI
+  - Improve widget collection filtering
+  - Add automatic default selection
+- Standardize widget transform calculations
+  - Unify transform calculation logic
+  - Improve shape key range handling
+  - Standardize offset calculations
+
+**UI/UX Improvements**
+- Enhance collection selection interface
+  - Filter to show only Widgets collection children
+  - Add automatic collection detection
+  - Improve collection name handling
+- Add intelligent default selection
+  - Add shape key name detection from bone name
+  - Improve initial value selection
+  - Add automatic widget collection matching
+
+**Bug Fixes**
+- Fix widget position calculation issues
+- Fix collection selection filtering
+- Improve sync operation stability
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇰🇷 한글</code></summary>
+
+**위젯 시스템 강화**
+- 싱크 오퍼레이터에 메쉬와 쉐이프 키 선택 추가
+  - 직접 쉐이프 키 선택 UI 추가
+  - 위젯 컬렉션 필터링 개선
+  - 자동 기본값 선택 추가
+- 위젯 트랜스폼 계산 표준화
+  - 트랜스폼 계산 로직 통일
+  - 쉐이프 키 범위 처리 개선
+  - 오프셋 계산 표준화
+
+**UI/UX 개선**
+- 컬렉션 선택 인터페이스 강화
+  - Widgets 컬렉션 자식만 표시하도록 필터링
+  - 자동 컬렉션 감지 추가
+  - 컬렉션 이름 처리 개선
+- 지능형 기본값 선택 추가
+  - 본 이름에서 쉐이프 키 이름 감지 추가
+  - 초기값 선택 개선
+  - 자동 위젯 컬렉션 매칭 추가
+
+**버그 수정**
+- 위젯 위치 계산 문제 수정
+- 컬렉션 선택 필터링 수정
+- 싱크 작업 안정성 개선
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇯🇵 日本語</code></summary>
+
+**ウィジェットシステムの強化**
+- 同期オペレーターにメッシュとシェイプキーの選択を追加
+  - 直接シェイプキー選択UIの追加
+  - ウィジェットコレクションフィルタリングの改善
+  - 自動デフォルト選択の追加
+- ウィジェットトランスフォーム計算の標準化
+  - トランスフォーム計算ロジックの統一
+  - シェイプキー範囲処理の改善
+  - オフセット計算の標準化
+
+**UI/UX改善**
+- コレクション選択インターフェースの強化
+  - Widgetsコレクションの子のみ表示するフィルタリング
+  - 自動コレクション検出の追加
+  - コレクション名処理の改善
+- インテリジェントデフォルト選択の追加
+  - ボーン名からシェイプキー名を検出
+  - 初期値選択の改善
+  - 自動ウィジェットコレクションマッチングの追加
+
+**バグ修正**
+- ウィジェット位置計算の問題を修正
+- コレクション選択フィルタリングの修正
+- 同期操作の安定性向上
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇨🇳 中文</code></summary>
+
+**部件系统增强**
+- 为同步操作添加网格和形态键选择
+  - 添加直接形态键选择界面
+  - 改进部件集合过滤
+  - 添加自动默认选择
+- 标准化部件变换计算
+  - 统一变换计算逻辑
+  - 改进形态键范围处理
+  - 标准化偏移计算
+
+**UI/UX改进**
+- 增强集合选择界面
+  - 仅显示Widgets集合子项的过滤
+  - 添加自动集合检测
+  - 改进集合名称处理
+- 添加智能默认选择
+  - 从骨骼名称检测形态键名称
+  - 改进初始值选择
+  - 添加自动部件集合匹配
+
+**错误修复**
+- 修复部件位置计算问题
+- 修复集合选择过滤
+- 改进同步操作稳定性
+</details>
+</details>
+
+<details>
 <summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.1.7 (2025-02-09)</code></summary>
 
 ![Regeneration Button](./images/regeneration_button.png)

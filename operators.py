@@ -232,15 +232,42 @@ class OBJECT_OT_apply_shape_key_to_bone(Operator):
                (context.mode == 'POSE' and context.active_pose_bone)
     
     def invoke(self, context, event):
-        # 기본값 설정: 첫 번째 사용 가능한 메쉬와 쉐이프 키 선택
+        # 현재 본 이름 가져오기
+        bone_name = context.active_bone.name if context.mode == 'EDIT_ARMATURE' else context.active_pose_bone.name
+        
+        # 'shape_key_ctrl_' 접두어가 있는 경우 제거하여 쉐이프 키 이름 추출
+        shape_key_name = bone_name.replace('shape_key_ctrl_', '') if bone_name.startswith('shape_key_ctrl_') else bone_name
+        
+        # 추출된 쉐이프 키 이름으로 메쉬 찾기
+        found = False
+        for obj in context.scene.objects:
+            if obj.type == 'MESH' and obj.data.shape_keys:
+                for key in obj.data.shape_keys.key_blocks[1:]:  # Basis 제외
+                    if key.name == shape_key_name:
+                        self.target_mesh = obj.name
+                        self.target_shape_key = key.name
+                        found = True
+                        break
+            if found:
+                break
+
+        # 연결된 쉐이프 키가 없는 경우 첫 번째 사용 가능한 메쉬와 쉐이프 키 선택
         if not self.target_mesh:
             for obj in context.scene.objects:
                 if (obj.type == 'MESH' and obj.data.shape_keys):
                     self.target_mesh = obj.name
-                    # 첫 번째 쉐이프 키 선택
                     if obj.data.shape_keys.key_blocks:
                         self.target_shape_key = obj.data.shape_keys.key_blocks[1].name  # 0은 Basis
                     break
+
+        # WGT_shape_key_ctrl_로 시작하는 컬렉션 찾기
+        widgets_collection = bpy.data.collections.get("Widgets")
+        if widgets_collection:
+            for col in widgets_collection.children:
+                if col.name.startswith("WGT_shape_key_ctrl_"):
+                    if shape_key_name in col.name.replace("WGT_shape_key_ctrl_", ""):
+                        self.shape_collection = col.name
+                        break
         
         return context.window_manager.invoke_props_dialog(self)
     
@@ -260,7 +287,7 @@ class OBJECT_OT_apply_shape_key_to_bone(Operator):
         if context.mode == 'EDIT_ARMATURE':
             bone_name = context.active_bone.name
             edit_bone = context.active_bone
-            pose_bone = armature.pose.bones[bone_name]  # PoseBone 가져오기
+            pose_bone = armature.pose.bones[bone_name]
         else:
             bone_name = context.active_pose_bone.name
             pose_bone = context.active_pose_bone
@@ -276,20 +303,42 @@ class OBJECT_OT_apply_shape_key_to_bone(Operator):
             if self.target_shape_key in target_mesh.data.shape_keys.key_blocks:
                 shape_key = target_mesh.data.shape_keys.key_blocks[self.target_shape_key]
                 
-                # 컬렉션이 선택되지 않은 경우에만 새 위젯 생성
-                if not self.shape_collection:
+                # Widgets 컬렉션 확인 또는 생성
+                widgets_collection = bpy.data.collections.get("Widgets")
+                if not widgets_collection:
+                    widgets_collection = bpy.data.collections.new("Widgets")
+                    context.scene.collection.children.link(widgets_collection)
+                
+                # 2. 컬렉션 처리
+                if self.shape_collection:
+                    # 기존 컬렉션 사용
+                    widget_collection = bpy.data.collections.get(self.shape_collection)
+                    if not widget_collection:
+                        self.report({'ERROR'}, "Selected collection not found!")
+                        return {'CANCELLED'}
+                else:
+                    # 새 위젯과 컬렉션 생성
                     widget, error = utils.create_shape_key_text_widget(
                         context,
                         f"WGT_{bone_name}",
                         self.target_shape_key,
-                        pose_bone,  # PoseBone 전달
+                        pose_bone,
                         shape_key
                     )
                     
                     if not widget:
                         self.report({'ERROR'}, f"Failed to create widget: {error}")
                         return {'CANCELLED'}
+                    
+                    # 새 컬렉션 생성 및 Widgets 컬렉션에 추가
+                    widgets_collection.children.link(widget_collection)
+                    
+                    # 위젯을 새 컬렉션으로 이동
+                    if widget.name in context.scene.collection.objects:
+                        context.scene.collection.objects.unlink(widget)
+                    widget_collection.objects.link(widget)
                 
+                # 3. 드라이버 설정
                 success, error_message = utils.setup_shape_key_driver(
                     armature,
                     bone_name,
@@ -302,37 +351,8 @@ class OBJECT_OT_apply_shape_key_to_bone(Operator):
                     self.report({'ERROR'}, f"Error setting up driver: {error_message}")
                     return {'CANCELLED'}
                 
-                # 2. 쉐이프 컬렉션 처리
-                if self.shape_collection:
-                    collection = bpy.data.collections.get(self.shape_collection)
-                    if collection and collection.objects:
-                        # 트랜스폼 계산
-                        bone_matrix = armature.matrix_world @ pose_bone.matrix
-                        transforms = utils.calculate_widget_transforms(
-                            bone_matrix, 
-                            pose_bone.length, 
-                            shape_key
-                        )
-                        
-                        # 위젯 오브젝트에 적용
-                        for obj in collection.objects:
-                            if obj.name.startswith('WGT_'):
-                                utils.apply_widget_transforms(obj, transforms, 'WGT')
-                            elif obj.name.startswith('SLIDE_'):
-                                utils.apply_widget_transforms(obj, transforms, 'SLIDE')
-                            elif obj.name.startswith('TEXT_'):
-                                utils.apply_widget_transforms(obj, transforms, 'TEXT')
-                else:  # 컬렉션이 선택되지 않은 경우
-                    # 새 컬렉션 생성
-                    new_collection = bpy.data.collections.new(f"ShapeObjects_{bone_name}")
-                    context.scene.collection.children.link(new_collection)
-                    # 새로 생성된 위젯들을 새 컬렉션에 추가
-                    for obj in [widget]:  # 필요한 경우 다른 위젯 객체들도 추가
-                        if obj.name in context.scene.collection.objects:
-                            context.scene.collection.objects.unlink(obj)
-                        new_collection.objects.link(obj)
-                
                 self.report({'INFO'}, f"Successfully connected bone '{bone_name}' to shape key '{self.target_shape_key}'")
+                
             else:
                 self.report({'ERROR'}, f"Shape key '{self.target_shape_key}' not found in mesh")
                 return {'CANCELLED'}
@@ -704,12 +724,31 @@ class EDIT_OT_sync_metarig_bone(Operator):
     bl_label = "Sync with Metarig"
     bl_options = {'REGISTER', 'UNDO'}
     
+    target_mesh: EnumProperty(
+        name="Target Mesh",
+        description="Select mesh with shape keys",
+        items=lambda self, context: [
+            (obj.name, obj.name, "")
+            for obj in context.scene.objects
+            if obj.type == 'MESH' and obj.data.shape_keys
+        ]
+    ) # type: ignore
+
+    target_shape_key: EnumProperty(
+        name="Shape Key",
+        description="Select shape key to connect",
+        items=lambda self, context: [
+            (sk.name, sk.name, "")
+            for sk in bpy.data.objects.get(self.target_mesh, context.active_object).data.shape_keys.key_blocks[1:]
+        ] if self.target_mesh and bpy.data.objects.get(self.target_mesh).data.shape_keys else []
+    ) # type: ignore
+
     shape_collection: EnumProperty(
         name="Shape Collection",
         description="Select collection containing shape objects",
         items=lambda self, context: [
             (col.name, col.name, "")
-            for col in bpy.data.collections
+            for col in bpy.data.collections.get("Widgets", []).children
         ]
     ) # type: ignore
 
@@ -722,10 +761,50 @@ class EDIT_OT_sync_metarig_bone(Operator):
                 context.active_object == context.scene.rigify_rig)
 
     def invoke(self, context, event):
+        # 현재 본 이름 가져오기
+        bone_name = context.active_bone.name
+        
+        # 'shape_key_ctrl_' 접두어가 있는 경우 제거하여 쉐이프 키 이름 추출
+        shape_key_name = bone_name.replace('shape_key_ctrl_', '') if bone_name.startswith('shape_key_ctrl_') else bone_name
+        
+        # 쉐이프 키 이름으로 메쉬와 쉐이프 키 찾기
+        found = False
+        for obj in context.scene.objects:
+            if obj.type == 'MESH' and obj.data.shape_keys:
+                for key in obj.data.shape_keys.key_blocks[1:]:  # Basis 제외
+                    if key.name == shape_key_name:
+                        self.target_mesh = obj.name
+                        self.target_shape_key = key.name
+                        found = True
+                        break
+            if found:
+                break
+
+        # 연결된 쉐이프 키가 없는 경우 첫 번째 사용 가능한 메쉬와 쉐이프 키 선택
+        if not self.target_mesh:
+            for obj in context.scene.objects:
+                if (obj.type == 'MESH' and obj.data.shape_keys):
+                    self.target_mesh = obj.name
+                    if obj.data.shape_keys.key_blocks:
+                        self.target_shape_key = obj.data.shape_keys.key_blocks[1].name  # 0은 Basis
+                    break
+        
+        # WGT_shape_key_ctrl_로 시작하는 컬렉션 찾기
+        widgets_collection = bpy.data.collections.get("Widgets")
+        if widgets_collection:
+            for col in widgets_collection.children:
+                if col.name.startswith("WGT_shape_key_ctrl_"):
+                    if shape_key_name in col.name.replace("WGT_shape_key_ctrl_", ""):
+                        self.shape_collection = col.name
+                        break
+        
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
         layout = self.layout
+        layout.prop(self, "target_mesh")
+        if self.target_mesh:
+            layout.prop(self, "target_shape_key")
         layout.prop(self, "shape_collection")
 
     def execute(self, context):
@@ -735,8 +814,14 @@ class EDIT_OT_sync_metarig_bone(Operator):
         rigify_rig = context.scene.rigify_rig
         metarig = context.scene.metarig
         
-        # 선택된 컬렉션 가져오기
+        # 선택된 컬렉션과 쉐이프 키 가져오기
         shape_collection = bpy.data.collections.get(self.shape_collection)
+        target_mesh = bpy.data.objects.get(self.target_mesh)
+        
+        if target_mesh and target_mesh.data.shape_keys:
+            shape_key = target_mesh.data.shape_keys.key_blocks.get(self.target_shape_key)
+        else:
+            shape_key = None
         
         # 본의 현재 변환값 저장
         head_pos = rigify_bone.head.copy()
@@ -780,32 +865,12 @@ class EDIT_OT_sync_metarig_bone(Operator):
             
             # 6. 쉐이프 컬렉션 처리
             if shape_collection and shape_collection.objects:
-                # 쉐이프 키 찾기
-                shape_key = None
-                for obj in shape_collection.objects:
-                    if obj.name.startswith('WGT_'):
-                        # 위젯 이름에서 본 이름 추출
-                        widget_bone_name = obj.name[4:]  # 'WGT_' 제외
-                        # 연결된 메쉬에서 쉐이프 키 찾기
-                        for mesh_obj in bpy.data.objects:
-                            if (mesh_obj.type == 'MESH' and 
-                                mesh_obj.data.shape_keys and 
-                                mesh_obj.data.shape_keys.animation_data):
-                                for driver in mesh_obj.data.shape_keys.animation_data.drivers:
-                                    if widget_bone_name in driver.data_path:
-                                        shape_key_name = driver.data_path.split('"')[1]
-                                        shape_key = mesh_obj.data.shape_keys.key_blocks[shape_key_name]
-                                        break
-                                if shape_key:
-                                    break
-                        break
-
                 # 트랜스폼 계산
                 bone_matrix = metarig.matrix_world @ metarig.pose.bones[bone_name].matrix
                 transforms = utils.calculate_widget_transforms(
                     bone_matrix,
                     metarig.pose.bones[bone_name].length,
-                    shape_key
+                    shape_key  # 선택한 쉐이프 키 전달
                 )
                 
                 # 위젯 오브젝트에 적용

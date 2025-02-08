@@ -206,90 +206,185 @@ def update_driver_expression(driver, value, transform_type, mesh_obj=None):
     if mesh_obj:
         mesh_obj.active_shape_key_index = 0
         
-def calculate_widget_transforms(bone_matrix, bone_length, shape_key=None):
-    """Calculate widget transforms based on bone and shape key
-    
-    Args:
-        bone_matrix: World matrix of the bone
-        bone_length: Length of the bone
-        shape_key: Optional shape key for offset calculation
-    
-    Returns:
-        dict: Dictionary containing transform information
+def sync_bones_and_widgets(context, rigify_bone_name, shape_collection=None, skip_widget_update=False):
     """
-    bone_loc = bone_matrix.translation
-    bone_rot = bone_matrix.to_euler('XYZ')
-    bone_rot_quat = bone_matrix.to_quaternion()
+    메타리그와 리기파이 리그 간의 본 동기화 및 위젯 업데이트를 처리하는 공통 함수
+
+    Args:
+        context: 현재 컨텍스트
+        rigify_bone_name: 리기파이 리그의 본 이름
+        shape_collection: 위젯 오브젝트를 포함하는 컬렉션 (선택사항)
+        skip_widget_update: 위젯 업데이트 건너뛰기 여부 (기본값: False)
+
+    Returns:
+        tuple: (성공 여부, 메시지)
+    """
+    try:
+        rigify_rig = context.scene.rigify_rig
+        metarig = context.scene.metarig
+
+        if not all([rigify_rig, metarig]):
+            return False, "Rigify rig or metarig not found"
+
+        # 1. 본 데이터 가져오기
+        if context.mode == 'EDIT':
+            rigify_bone = rigify_rig.data.edit_bones.get(rigify_bone_name)
+            metarig_bone = metarig.data.edit_bones.get(rigify_bone_name)
+        else:
+            rigify_bone = rigify_rig.pose.bones.get(rigify_bone_name)
+            metarig_bone = metarig.pose.bones.get(rigify_bone_name)
+
+        if not all([rigify_bone, metarig_bone]):
+            return False, f"Bone '{rigify_bone_name}' not found in both rigs"
+
+        # 2. 메타리그 상태 저장
+        was_hidden = metarig.hide_viewport
+        was_hidden_select = metarig.hide_select
+        was_hidden_get = metarig.hide_get()
+
+        try:
+            # 메타리그 활성화
+            metarig.hide_viewport = False
+            metarig.hide_select = False
+            metarig.hide_set(False)
+
+            # 3. 본 트랜스폼 동기화
+            if context.mode == 'EDIT':
+                metarig_bone.head = rigify_bone.head.copy()
+                metarig_bone.tail = rigify_bone.tail.copy()
+                metarig_bone.roll = rigify_bone.roll
+            else:
+                # 포즈 모드에서는 매트릭스 사용
+                metarig_bone.matrix = rigify_bone.matrix.copy()
+
+            # 4. 위젯 업데이트
+            if shape_collection and not skip_widget_update:
+                # 쉐이프 키 찾기
+                shape_key = None
+                for obj in shape_collection.objects:
+                    if obj.name.startswith('WGT_'):
+                        widget_bone_name = obj.name[4:]  # 'WGT_' 제외
+                        for mesh_obj in bpy.data.objects:
+                            if (mesh_obj.type == 'MESH' and 
+                                mesh_obj.data.shape_keys and 
+                                mesh_obj.data.shape_keys.animation_data):
+                                for driver in mesh_obj.data.shape_keys.animation_data.drivers:
+                                    if widget_bone_name in driver.data_path:
+                                        shape_key_name = driver.data_path.split('"')[1]
+                                        shape_key = mesh_obj.data.shape_keys.key_blocks[shape_key_name]
+                                        break
+                                if shape_key:
+                                    break
+                        break
+
+                # 트랜스폼 계산 및 적용
+                bone_matrix = metarig.matrix_world @ metarig.pose.bones[rigify_bone_name].matrix
+                transforms = calculate_widget_transforms(
+                    bone_matrix,
+                    metarig.pose.bones[rigify_bone_name].length,
+                    shape_key
+                )
+
+                # 위젯 오브젝트 업데이트
+                for obj in shape_collection.objects:
+                    if obj.name.startswith('WGT_'):
+                        apply_widget_transforms(obj, transforms, 'WGT')
+                    elif obj.name.startswith('SLIDE_'):
+                        apply_widget_transforms(obj, transforms, 'SLIDE')
+                    elif obj.name.startswith('TEXT_'):
+                        apply_widget_transforms(obj, transforms, 'TEXT')
+
+            return True, "Sync completed successfully"
+
+        finally:
+            # 메타리그 상태 복원
+            metarig.hide_viewport = was_hidden
+            metarig.hide_select = was_hidden_select
+            metarig.hide_set(was_hidden_get)
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return False, f"Error during sync: {str(e)}"
+        
+def calculate_widget_base_scales(bone_length):
+    """Calculate base scales for widgets based on bone length"""
+    return {
+        "base_scale": bone_length * 0.5,  # 본 길이의 절반을 기본 크기로
+        "slider_width": bone_length * 2,   # 슬라이더 길이는 본 길이의 2배
+        "slider_height": bone_length * 0.1, # 슬라이더 높이는 본 길이의 10%
+        "text_scale": bone_length * 0.4    # 텍스트 크기는 본 길이의 40%
+    }
+
+def calculate_slider_offset(scales, shape_key=None):
+    """Calculate slider offset based on shape key range"""
+    base_offset = mathutils.Vector((-scales["slider_width"] / 2, 0, 0))  # 기본 위치
     
-    # 기본 스케일과 오프셋 설정
-    base_scale = bone_length * 0.5
-    slider_width = bone_length * 2
-    slider_height = bone_length * 0.1
-    text_scale = bone_length * 0.4
-    
-    # 슬라이더 오프셋 계산
-    base_offset = mathutils.Vector((-slider_width / 2, 0, 0))
-    
-    # 쉐이프 키 범위에 따른 오프셋 조정
-    if shape_key:
+    if shape_key and isinstance(shape_key, bpy.types.ShapeKey):
         min_value = shape_key.slider_min
         max_value = shape_key.slider_max
         
         if min_value == -1 and max_value == 1:
+            # -1~1 범위일 경우 본이 중앙에 오도록
             base_offset = mathutils.Vector((0, 0, 0))
+            print("Centered slider")
         elif not (min_value == 0 and max_value == 1):
+            # 다른 범위의 경우 오프셋 계산
             total_range = max_value - min_value
             mid_value = (max_value + min_value) / 2
             offset_ratio = -mid_value / total_range
-            x_offset = slider_width * offset_ratio
+            x_offset = scales["slider_width"] * offset_ratio
             base_offset += mathutils.Vector((x_offset, 0, 0))
+            print(f"Offset slider by {x_offset}")
+            
+    return base_offset
+
+def calculate_widget_transforms(bone_matrix, bone_length, shape_key=None):
+    """Calculate all widget transforms"""
+    bone_loc = bone_matrix.translation
+    bone_rot = bone_matrix.to_euler('XYZ')
+    bone_rot_quat = bone_matrix.to_quaternion()
+
+    # 기본 스케일 계산
+    scales = calculate_widget_base_scales(bone_length)
     
-    # 오프셋을 본의 회전에 맞춰 회전
+    # 오프셋 계산
+    base_offset = calculate_slider_offset(scales, shape_key)
     base_offset.rotate(bone_rot_quat)
     
     # 텍스트 오프셋 계산
     text_offset = mathutils.Vector((0, bone_length * 0.3, 0))
     text_offset.rotate(bone_rot_quat)
-    
+
     return {
         "bone_loc": bone_loc,
         "bone_rot": bone_rot,
         "bone_rot_quat": bone_rot_quat,
-        "base_scale": base_scale,
-        "slider_width": slider_width,
-        "slider_height": slider_height,
-        "text_scale": text_scale,
+        **scales,
         "base_offset": base_offset,
         "text_offset": text_offset
     }
 
 def apply_widget_transforms(obj, transforms, obj_type):
-    """Apply calculated transforms to widget object
-    
-    Args:
-        obj: Widget object to transform
-        transforms: Dictionary of transform information
-        obj_type: Type of widget ('TEXT', 'SLIDE', or 'WGT')
-    """
+    """Apply calculated transforms to widget object"""
     if obj_type == 'TEXT':
         obj.location = transforms["bone_loc"] + transforms["text_offset"]
         obj.rotation_euler = transforms["bone_rot"]
         obj.scale = mathutils.Vector((transforms["text_scale"],) * 3)
+        obj.display_type = 'WIRE'
         
     elif obj_type == 'SLIDE':
         obj.location = transforms["bone_loc"] - transforms["base_offset"]
         obj.rotation_mode = 'XYZ'
-        obj.rotation_euler = (math.radians(90), 
-                            transforms["bone_rot"].y, 
-                            transforms["bone_rot"].z)
-        obj.scale = mathutils.Vector((transforms["slider_width"], 
-                                    transforms["slider_height"], 
-                                    transforms["base_scale"]))
+        obj.rotation_euler = (math.radians(90), transforms["bone_rot"].y, transforms["bone_rot"].z)
+        obj.scale = mathutils.Vector((transforms["slider_width"], transforms["slider_height"], transforms["base_scale"]))
+        obj.display_type = 'WIRE'
         
     elif obj_type == 'WGT':
         obj.location = transforms["bone_loc"]
         obj.rotation_euler = transforms["bone_rot"]
         obj.scale = mathutils.Vector((transforms["base_scale"],) * 3)
+        obj.display_type = 'WIRE'
 
 def setup_bone_constraints(pose_bone, transform_type):
     """Set up bone constraints for shape key control
@@ -428,6 +523,7 @@ def create_shape_key_text_widget(context, text_name, text_body, bone=None, shape
         text_name: Full widget name (e.g., 'WGT_shape_key_ctrl_Ah')
         text_body: Content of the text
         bone: Optional pose bone to attach widget to
+        shape_key: Optional shape key for range calculation
     """
     try:
         # 기존 위젯 찾기
@@ -451,27 +547,17 @@ def create_shape_key_text_widget(context, text_name, text_body, bone=None, shape
         # 오브젝트 모드로 전환
         if active_mode != 'OBJECT':
             bpy.ops.object.mode_set(mode='OBJECT')
-            
-        # 본의 월드 매트릭스 계산
+
+        # 트랜스폼 계산
         if bone and isinstance(bone, bpy.types.PoseBone):
-            armature = active_object
-            world_matrix = armature.matrix_world @ bone.matrix
-            bone_loc = world_matrix.translation
-            bone_rot = world_matrix.to_euler('XYZ')
-            # 본의 길이 계산
-            bone_length = bone.length
-            # 본 길이를 기준으로 기본 스케일 설정
-            base_scale = bone_length * 0.5  # 본 길이의 절반을 기본 크기로
-            slider_width = bone_length * 2  # 슬라이더 길이는 본 길이의 2배
-            slider_height = bone_length * 0.1  # 슬라이더 높이는 본 길이의 10%
-            text_scale = bone_length * 0.4  # 텍스트 크기는 본 길이의 40%
+            world_matrix = active_object.matrix_world @ bone.matrix
+            transforms = calculate_widget_transforms(world_matrix, bone.length, shape_key)
         else:
-            bone_loc = mathutils.Vector((0, 0, 0))
-            bone_rot = mathutils.Euler((0, 0, 0))
-            base_scale = 0.2
-            slider_width = base_scale * 4
-            slider_height = base_scale * 0.2
-            text_scale = base_scale
+            transforms = calculate_widget_transforms(
+                mathutils.Matrix.Identity(4),
+                0.2,  # 기본 본 길이
+                shape_key
+            )
 
         # 템플릿 컬렉션 확인 및 생성
         template_collection = ensure_template_collection()
@@ -496,64 +582,17 @@ def create_shape_key_text_widget(context, text_name, text_body, bone=None, shape
         handle.data = handle_template.data.copy()
 
         # 텍스트 생성
-        bpy.ops.object.text_add(location=bone_loc)
+        bpy.ops.object.text_add(location=transforms["bone_loc"])
         text_obj = context.active_object
         text_obj.name = f"TEXT_{text_name}"
         text_obj.data.body = text_body
         text_obj.data.align_x = 'CENTER'
         text_obj.data.fill_mode = 'NONE'
 
-        # 본의 회전 정보 계산
-        bone_rot_quat = world_matrix.to_quaternion()
-
-        # 위치 및 크기 조정
-        handle.location = bone_loc
-        handle.rotation_euler = bone_rot
-        handle.scale = mathutils.Vector((base_scale, base_scale, base_scale))
-
-        # 슬라이더 오프셋 계산
-        base_offset = mathutils.Vector((-slider_width / 2, 0, 0))  # 기본 위치
-
-        # shape_key가 ShapeKey 객체인 경우 범위 확인
-        if shape_key and isinstance(shape_key, bpy.types.ShapeKey):
-            min_value = shape_key.slider_min
-            max_value = shape_key.slider_max
-            
-            print(f"Shape key range: {min_value} ~ {max_value}")
-            
-            if min_value == -1 and max_value == 1:
-                # -1~1 범위일 경우 본이 중앙에 오도록
-                base_offset = mathutils.Vector((0, 0, 0))
-                print("Centered slider")
-            elif not (min_value == 0 and max_value == 1):
-                # 다른 범위의 경우 기존 계산 유지
-                total_range = max_value - min_value
-                mid_value = (max_value + min_value) / 2
-                offset_ratio = -mid_value / total_range
-                x_offset = slider_width * offset_ratio
-                base_offset += mathutils.Vector((x_offset, 0, 0))
-                print(f"Offset slider by {x_offset}")
-
-        # 오프셋을 본의 회전에 맞춰 회전
-        base_offset.rotate(bone_rot_quat)
-
-        # 슬라이더 설정
-        slider_line.location = bone_loc - base_offset
-        slider_line.rotation_mode = 'XYZ'
-        slider_line.rotation_euler = (math.radians(90), bone_rot.y, bone_rot.z)
-        slider_line.scale = mathutils.Vector((slider_width, slider_height, base_scale))
-
-        # 텍스트 위치 조정
-        text_offset = mathutils.Vector((0, bone_length * 0.3, 0))  # 본 길이의 30% 만큼 위로
-        text_offset.rotate(bone_rot_quat)
-        text_obj.location = bone_loc + text_offset
-        text_obj.rotation_euler = bone_rot
-        text_obj.scale = mathutils.Vector((text_scale, text_scale, text_scale))
-
-        # 모든 오브젝트를 와이어프레임으로 표시
-        text_obj.display_type = 'WIRE'
-        slider_line.display_type = 'WIRE'
-        handle.display_type = 'WIRE'
+        # 위젯들에 트랜스폼 적용
+        apply_widget_transforms(handle, transforms, 'WGT')
+        apply_widget_transforms(slider_line, transforms, 'SLIDE')
+        apply_widget_transforms(text_obj, transforms, 'TEXT')
 
         # Widgets 컬렉션 확인 또는 생성
         widgets_collection = bpy.data.collections.get("Widgets")
