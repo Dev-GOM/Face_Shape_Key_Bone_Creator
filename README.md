@@ -19,6 +19,234 @@ Shape Key Bone Control Creator is a Blender add-on that helps you visualize and 
 ## Version History / 버전 기록 / バージョン履歴 / 版本历史
 
 <details>
+<summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.1.6 (2025-02-09)</code></summary>
+
+<details>
+<summary><code style="color: #28a745;">🇺🇸 English</code></summary>
+
+**Widget Preservation System**
+- Add widget preservation during rigify regeneration
+  - Store custom widget settings before regeneration
+  - Restore widget settings after regeneration
+  - Maintain widget positions and transformations
+- Improve widget handling reliability
+  - Preserve widget collections
+  - Maintain widget relationships
+  - Keep shape key connections
+
+**Driver Value Enhancement**
+- Add intelligent driver value handling
+  - Detect and use existing driver values
+  - Preserve original multiplier values
+  - Remove hardcoded default values
+- Improve driver setup consistency
+  - Better value detection
+  - Proper error handling
+  - Maintain mathematical relationships
+
+**Sync System Improvements**
+- Add automatic sync functionality
+  - Add sync enable/disable toggle
+  - Optimize sync operations
+  - Add proper error handling
+- Clean up sync system
+  - Remove redundant updates
+  - Improve code efficiency
+  - Better error reporting
+
+**Post-Regeneration Workflow**
+- Add automatic workflow after regeneration
+  - Auto-hide metarig after regeneration
+  - Auto-clear all selections
+  - Auto-switch to pose mode
+- Add multilingual support
+  - Add translations for regeneration UI
+  - Add translations for widget preservation
+  - Improve user feedback messages
+
+**Bug Fixes**
+- Fix widget reset on regeneration
+- Fix default driver values
+- Remove unnecessary shape key updates
+
+**Important Note**
+- Always use the addon's "Regenerate (Preserve Widgets)" button
+- Using Blender's default regenerate button will result in:
+  - Loss of all custom widgets starting with 'WGT_shape_key_ctrl'
+  - Reset of all shape key control relationships
+  - Loss of custom widget positions and settings
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇰🇷 한글</code></summary>
+
+**위젯 보존 시스템**
+- 리기파이 리제네레이트 시 위젯 보존 기능 추가
+  - 리제네레이트 전 커스텀 위젯 설정 저장
+  - 리제네레이트 후 위젯 설정 복원
+  - 위젯 위치와 변환 유지
+- 위젯 처리 안정성 개선
+  - 위젯 컬렉션 보존
+  - 위젯 관계 유지
+  - 쉐이프 키 연결 유지
+
+**드라이버 값 개선**
+- 지능형 드라이버 값 처리 추가
+  - 기존 드라이버 값 감지 및 사용
+  - 원본 승수 값 보존
+  - 하드코딩된 기본값 제거
+- 드라이버 설정 일관성 개선
+  - 더 나은 값 감지
+  - 적절한 오류 처리
+  - 수학적 관계 유지
+
+**동기화 시스템 개선**
+- 자동 동기화 기능 추가
+  - 동기화 활성화/비활성화 토글
+  - 동기화 작업 최적화
+  - 적절한 오류 처리
+- 동기화 시스템 정리
+  - 불필요한 업데이트 제거
+  - 코드 효율성 개선
+  - 더 나은 오류 보고
+
+**리제네레이트 후처리 워크플로우**
+- 리제네레이트 후 자동 워크플로우 추가
+  - 리제네레이트 후 메타리그 자동 숨김
+  - 모든 선택 자동 해제
+  - 포즈 모드 자동 전환
+- 다국어 지원 추가
+  - 리제네레이트 UI 번역 추가
+  - 위젯 보존 관련 번역 추가
+  - 사용자 피드백 메시지 개선
+
+**버그 수정**
+- 리제네레이트 시 위젯 초기화 문제 수정
+- 기본 드라이버 값 수정
+- 불필요한 쉐이프 키 업데이트 제거
+
+**중요 사항**
+- 반드시 애드온의 "리제네레이트 (위젯 유지)" 버튼을 사용하세요
+- 블렌더 기본 리제네레이트 버튼 사용 시:
+  - 'WGT_shape_key_ctrl'로 시작하는 모든 커스텀 위젯이 손실됩니다
+  - 모든 쉐이프 키 컨트롤 관계가 초기화됩니다
+  - 커스텀 위젯의 위치와 설정이 손실됩니다
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇯🇵 日本語</code></summary>
+
+**ウィジェット保持システム**
+- Rigify再生成時のウィジェット保持機能を追加
+  - 再生成前のカスタムウィジェット設定を保存
+  - 再生成後のウィジェット設定を復元
+  - ウィジェットの位置と変換を維持
+- ウィジェット処理の安定性を改善
+  - ウィジェットコレクションの保持
+  - ウィジェット関係の維持
+  - シェイプキーの接続を維持
+
+**ドライバー値の改善**
+- インテリジェントなドライバー値処理を追加
+  - 既存ドライバー値の検出と使用
+  - 元の乗数値の保持
+  - ハードコードされたデフォルト値を削除
+- ドライバー設定の一貫性を改善
+  - より良い値検出
+  - 適切なエラー処理
+  - 数学的関係の維持
+
+**同期システムの改善**
+- 自動同期機能を追加
+  - 同期の有効/無効切り替え
+  - 同期操作の最適化
+  - 適切なエラー処理
+- 同期システムの整理
+  - 不要な更新を削除
+  - コード効率の改善
+  - より良いエラー報告
+
+**再生成後のワークフロー**
+- 再生成後の自動ワークフローを追加
+  - 再生成後のメタリグ自動非表示
+  - すべての選択の自動解除
+  - ポーズモードへの自動切り替え
+- 多言語サポートを追加
+  - 再生成UIの翻訳を追加
+  - ウィジェット保持関連の翻訳を追加
+  - ユーザーフィードバックメッセージの改善
+
+**バグ修正**
+- 再生成時のウィジェットリセット問題を修正
+- デフォルトドライバー値を修正
+- 不要なシェイプキー更新を削除
+
+**重要な注意事項**
+- 必ずアドオンの「再生成（ウィジェット保持）」ボタンを使用してください
+- Blenderのデフォルトの再生成ボタンを使用すると：
+  - 'WGT_shape_key_ctrl'で始まるすべてのカスタムウィジェットが失われます
+  - すべてのシェイプキーコントロールの関係がリセットされます
+  - カスタムウィジェットの位置と設定が失われます
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇨🇳 中文</code></summary>
+
+**部件保存系统**
+- 添加Rigify重新生成时的部件保存功能
+  - 重新生成前保存自定义部件设置
+  - 重新生成后恢复部件设置
+  - 维持部件位置和变换
+- 改进部件处理可靠性
+  - 保存部件集合
+  - 维持部件关系
+  - 保持形态键连接
+
+**驱动器值增强**
+- 添加智能驱动器值处理
+  - 检测并使用现有驱动器值
+  - 保留原始倍数值
+  - 删除硬编码默认值
+- 改进驱动器设置一致性
+  - 更好的值检测
+  - 适当的错误处理
+  - 维持数学关系
+
+**同步系统改进**
+- 添加自动同步功能
+  - 添加同步启用/禁用开关
+  - 优化同步操作
+  - 添加适当的错误处理
+- 清理同步系统
+  - 删除冗余更新
+  - 提高代码效率
+  - 更好的错误报告
+
+**重新生成后工作流程**
+- 添加重新生成后自动工作流程
+  - 重新生成后自动隐藏元骨架
+  - 自动清除所有选择
+  - 自动切换到姿势模式
+- 添加多语言支持
+  - 添加重新生成UI翻译
+  - 添加部件保存相关翻译
+  - 改进用户反馈消息
+
+**错误修复**
+- 修复重新生成时部件重置问题
+- 修复默认驱动器值
+- 删除不必要的形态键更新
+
+**重要提示**
+- 务必使用插件的"重新生成（保留部件）"按钮
+- 使用Blender默认的重新生成按钮将导致：
+  - 所有以'WGT_shape_key_ctrl'开头的自定义部件丢失
+  - 所有形态键控制关系重置
+  - 自定义部件的位置和设置丢失
+</details>
+</details>
+
+<details>
 <summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.1.5 (2025-02-09)</code></summary>
 
 <details>
