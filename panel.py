@@ -293,12 +293,17 @@ class OBJECT_OT_create_shape_key_slider(Operator):
                 # 원래 모드로 복귀
                 bpy.ops.object.mode_set(mode=current_mode)
         
-        # 위젯 생성
+        # 드라이버 설정을 위한 shape key block 가져오기
+        mesh_obj = bpy.data.objects[self.target_mesh]
+        shape_key_block = mesh_obj.data.shape_keys.key_blocks[self.shape_key]
+        
+        # 위젯 생성 - shape_key_block 전달
         widget, error = utils.create_shape_key_text_widget(
             context,
             f"WGT_{bone.name}",
             text_content,
-            bone
+            bone,
+            shape_key_block
         )
         
         if not widget:
@@ -320,10 +325,7 @@ class OBJECT_OT_create_shape_key_slider(Operator):
                     constraint.use_scale_y = False
                     constraint.use_scale_z = False
         
-        # 드라이버 설정
-        mesh_obj = bpy.data.objects[self.target_mesh]
-        shape_key_block = mesh_obj.data.shape_keys.key_blocks[self.shape_key]
-        
+        # 드라이버 설정 - 이미 가져온 shape_key_block 사용
         success, error = utils.setup_shape_key_driver(
             context.active_object,
             bone.name,

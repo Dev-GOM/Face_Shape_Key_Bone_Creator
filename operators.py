@@ -159,6 +159,8 @@ class OBJECT_OT_create_shape_key_text(Operator):
         text_obj, error = utils.create_shape_key_text_widget(
             context,
             f"WGT_{self.shape_key}",  # WGT_ 접두어 사용
+            self.shape_key,
+            None,
             self.shape_key
         )
         
@@ -182,8 +184,7 @@ class OBJECT_OT_apply_shape_key_to_bone(Operator):
             (obj.name, obj.name, "")
             for obj in context.scene.objects
             if obj.type == 'MESH' and obj.data.shape_keys
-        ],
-        update=lambda self, context: self.on_mesh_updated()
+        ]
     ) # type: ignore
 
     target_shape_key: EnumProperty(
@@ -192,14 +193,16 @@ class OBJECT_OT_apply_shape_key_to_bone(Operator):
         items=lambda self, context: [
             (sk.name, sk.name, "")
             for sk in bpy.data.objects.get(self.target_mesh, context.active_object).data.shape_keys.key_blocks[1:]
-        ] if self.target_mesh and bpy.data.objects.get(self.target_mesh).data.shape_keys else [],
-        update=lambda self, context: self.on_shape_key_updated()
+        ] if self.target_mesh and bpy.data.objects.get(self.target_mesh).data.shape_keys else []
     ) # type: ignore
 
-    shape_collection: PointerProperty(
-        type=bpy.types.Collection,
+    shape_collection: EnumProperty(
         name="Shape Collection",
-        description="Optional: Select collection containing shape objects to transform with bone"
+        description="Select collection containing shape objects",
+        items=lambda self, context: [
+            (col.name, col.name, "")
+            for col in bpy.data.collections
+        ]
     ) # type: ignore
 
     transform_type: EnumProperty(
@@ -214,7 +217,7 @@ class OBJECT_OT_apply_shape_key_to_bone(Operator):
         description="Driver influence multiplier (higher value = stronger effect)",
         default=4,
         min=0.0,
-        max=30.0,
+        max=60.0,
         step=0.1,
         precision=3
     ) # type: ignore
@@ -256,8 +259,10 @@ class OBJECT_OT_apply_shape_key_to_bone(Operator):
         # 현재 모드에 따라 본 이름 가져오기
         if context.mode == 'EDIT_ARMATURE':
             bone_name = context.active_bone.name
+            bone = context.active_bone
         else:
             bone_name = context.active_pose_bone.name
+            bone = context.active_pose_bone
         
         target_mesh = bpy.data.objects.get(self.target_mesh)
         if not target_mesh:
@@ -268,6 +273,19 @@ class OBJECT_OT_apply_shape_key_to_bone(Operator):
             # 1. 쉐이프 키 드라이버 설정
             if self.target_shape_key in target_mesh.data.shape_keys.key_blocks:
                 shape_key = target_mesh.data.shape_keys.key_blocks[self.target_shape_key]
+                
+                # 위젯 생성
+                widget, error = utils.create_shape_key_text_widget(
+                    context,
+                    f"WGT_{bone_name}",
+                    self.target_shape_key,  # 쉐이프 키 이름을 텍스트로 사용
+                    bone,
+                    shape_key  # ShapeKey 객체 전달
+                )
+                
+                if not widget:
+                    self.report({'ERROR'}, f"Failed to create widget: {error}")
+                    return {'CANCELLED'}
                 
                 success, error_message = utils.setup_shape_key_driver(
                     armature,
@@ -282,25 +300,27 @@ class OBJECT_OT_apply_shape_key_to_bone(Operator):
                     return {'CANCELLED'}
                 
                 # 2. 쉐이프 컬렉션 처리
-                if self.shape_collection and self.shape_collection.objects:
-                    # 모드에 따라 적절한 매트릭스 가져오기
-                    if context.mode == 'EDIT_ARMATURE':
-                        bone_matrix = armature.matrix_world @ context.active_bone.matrix
-                    else:
-                        bone_matrix = armature.matrix_world @ context.active_pose_bone.matrix
-                    
-                    for obj in self.shape_collection.objects:
-                        # 기존 페어런트 관계 해제
-                        if obj.parent:
-                            original_matrix = obj.matrix_world.copy()
-                            obj.parent = None
-                            obj.matrix_world = original_matrix
+                if self.shape_collection:
+                    collection = bpy.data.collections.get(self.shape_collection)
+                    if collection and collection.objects:
+                        # 모드에 따라 적절한 매트릭스 가져오기
+                        if context.mode == 'EDIT_ARMATURE':
+                            bone_matrix = armature.matrix_world @ context.active_bone.matrix
+                        else:
+                            bone_matrix = armature.matrix_world @ context.active_pose_bone.matrix
                         
-                        # 새로운 페어런트 설정
-                        obj.parent = armature
-                        obj.parent_type = 'BONE'
-                        obj.parent_bone = bone_name
-                        obj.matrix_parent_inverse = bone_matrix.inverted()
+                        for obj in collection.objects:
+                            # 기존 페어런트 관계 해제
+                            if obj.parent:
+                                original_matrix = obj.matrix_world.copy()
+                                obj.parent = None
+                                obj.matrix_world = original_matrix
+                            
+                            # 새로운 페어런트 설정
+                            obj.parent = armature
+                            obj.parent_type = 'BONE'
+                            obj.parent_bone = bone_name
+                            obj.matrix_parent_inverse = bone_matrix.inverted()
                 
                 self.report({'INFO'}, f"Successfully connected bone '{bone_name}' to shape key '{self.target_shape_key}'")
             else:
@@ -336,11 +356,18 @@ class OBJECT_OT_add_shape_key_bone(Operator):
         """Update bone name when target mesh changes"""
         try:
             if self.target_mesh:
-                self.target_shape_key = ''
+                # 첫 번째 사용 가능한 쉐이프 키를 선택
+                mesh_obj = bpy.data.objects.get(self.target_mesh)
+                if mesh_obj and mesh_obj.data.shape_keys:
+                    shape_keys = mesh_obj.data.shape_keys.key_blocks
+                    if len(shape_keys) > 1:  # Basis 제외
+                        self.target_shape_key = shape_keys[1].name
+                
+                # 본 이름 업데이트
                 self.bone_name = "shape_key_ctrl"
                 self.suggested_name = "shape_key_ctrl"
         except Exception as e:
-            self.report({'ERROR'}, f"Error updating mesh selection: {str(e)}")
+            print(f"Error updating mesh selection: {str(e)}")
 
     def update_shape_key(self, context):
         """Update bone name when shape key selection changes"""
@@ -410,7 +437,7 @@ class OBJECT_OT_add_shape_key_bone(Operator):
         description="Driver influence strength multiplier",
         default=4,
         min=0.0,
-        max=30.0,
+        max=60.0,
         step=0.1,
         precision=3
     ) # type: ignore

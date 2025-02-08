@@ -222,7 +222,7 @@ def setup_bone_constraints(pose_bone, transform_type):
     # 본의 변환 모드 설정
     pose_bone.rotation_mode = 'XYZ'
     
-def create_shape_key_text_widget(context, text_name, text_body, bone=None):
+def create_shape_key_text_widget(context, text_name, text_body, bone=None, shape_key=None):
     """Create text widget for shape key control
     
     Args:
@@ -299,8 +299,34 @@ def create_shape_key_text_widget(context, text_name, text_body, bone=None):
         handle.rotation_euler = bone_rot
         handle.scale = mathutils.Vector((base_scale, base_scale, base_scale))
 
+        # 슬라이더 오프셋 계산
+        base_offset = mathutils.Vector((-slider_width / 2, 0, 0))  # 기본 위치
+
+        # shape_key가 ShapeKey 객체인 경우 범위 확인
+        if shape_key and isinstance(shape_key, bpy.types.ShapeKey):
+            min_value = shape_key.slider_min  # value_min 대신 slider_min 사용
+            max_value = shape_key.slider_max  # value_max 대신 slider_max 사용
+            
+            print(f"Shape key range: {min_value} ~ {max_value}")
+            
+            if min_value == -1 and max_value == 1:
+                # -1~1 범위일 경우 본이 중앙에 오도록
+                base_offset = mathutils.Vector((0, 0, 0))
+                print("Centered slider")
+            elif not (min_value == 0 and max_value == 1):
+                # 다른 범위의 경우 기존 계산 유지
+                total_range = max_value - min_value
+                mid_value = (max_value + min_value) / 2
+                offset_ratio = -mid_value / total_range
+                x_offset = slider_width * offset_ratio
+                base_offset += mathutils.Vector((x_offset, 0, 0))
+                print(f"Offset slider by {x_offset}")
+
+        # 오프셋을 본의 회전에 맞춰 회전
+        base_offset.rotate(bone_rot_quat)
+
         # 슬라이더 설정
-        slider_line.location = bone_loc
+        slider_line.location = bone_loc - base_offset
         slider_line.rotation_mode = 'XYZ'
         slider_line.rotation_euler = (math.radians(90), bone_rot.y, bone_rot.z)
         slider_line.scale = mathutils.Vector((slider_width, slider_height, base_scale))
@@ -351,6 +377,9 @@ def create_shape_key_text_widget(context, text_name, text_body, bone=None):
         return handle, ""
 
     except Exception as e:
+        print(f"Error in create_shape_key_text_widget: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return None, str(e)
     
 def get_meshes_with_drivers(self, context):
