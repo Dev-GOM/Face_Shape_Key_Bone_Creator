@@ -19,6 +19,126 @@ Shape Key Bone Control Creator is a Blender add-on that helps you visualize and 
 ## Version History / 버전 기록 / バージョン履歴 / 版本历史
 
 <details>
+<summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.1.7 (2024-02-09)</code></summary>
+
+<details>
+<summary><code style="color: #28a745;">🇺🇸 English</code></summary>
+
+**Parent Relationship Preservation**
+- Add bone parent preservation during regeneration
+  - Store parent bone information
+  - Restore parent relationships in edit mode
+  - Maintain bone hierarchies
+- Improve regeneration workflow
+  - Add proper mode switching
+  - Handle parent bones correctly
+  - Maintain bone structure
+
+**Widget System Enhancement**
+- Simplify widget preservation system
+  - Remove unnecessary data storage
+  - Focus on essential widget data
+  - Improve code efficiency
+- Add proper mode handling
+  - Add edit mode switching for parent setup
+  - Improve mode restoration
+  - Add safety checks
+
+**Bug Fixes**
+- Fix widget restoration process
+- Fix parent bone handling
+- Improve error handling
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇰🇷 한글</code></summary>
+
+**부모 관계 보존**
+- 리제네레이트 시 본 부모 관계 보존 추가
+  - 부모 본 정보 저장
+  - 에딧 모드에서 부모 관계 복원
+  - 본 계층 구조 유지
+- 리제네레이트 워크플로우 개선
+  - 적절한 모드 전환 추가
+  - 부모 본 올바르게 처리
+  - 본 구조 유지
+
+**위젯 시스템 강화**
+- 위젯 보존 시스템 단순화
+  - 불필요한 데이터 저장 제거
+  - 핵심 위젯 데이터에 집중
+  - 코드 효율성 개선
+- 적절한 모드 처리 추가
+  - 부모 설정을 위한 에딧 모드 전환 추가
+  - 모드 복원 개선
+  - 안전성 체크 추가
+
+**버그 수정**
+- 위젯 복원 프로세스 수정
+- 부모 본 처리 수정
+- 오류 처리 개선
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇯🇵 日本語</code></summary>
+
+**親子関係の保持**
+- リジェネレート時のボーンの親子関係保持を追加
+  - 親ボーン情報の保存
+  - 編集モードでの親子関係の復元
+  - ボーン階層構造の維持
+- リジェネレートワークフローの改善
+  - 適切なモード切り替えの追加
+  - 親ボーンの適切な処理
+  - ボーン構造の維持
+
+**ウィジェットシステムの強化**
+- ウィジェット保持システムの簡素化
+  - 不要なデータ保存の削除
+  - 重要なウィジェットデータに焦点を当て
+  - コード効率の改善
+- 適切なモード処理の追加
+  - 親設定のための編集モード切り替えを追加
+  - モード復元の改善
+  - 安全性チェックの追加
+
+**バグ修正**
+- ウィジェット復元プロセスの修正
+- 親ボーン処理の修正
+- エラー処理の改善
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇨🇳 中文</code></summary>
+
+**父级关系保持**
+- 添加重新生成时的骨骼父级关系保持
+  - 保存父级骨骼信息
+  - 在编辑模式下恢复父级关系
+  - 维持骨骼层级结构
+- 改进重新生成工作流程
+  - 添加适当的模式切换
+  - 正确处理父级骨骼
+  - 维持骨骼结构
+
+**部件系统增强**
+- 简化部件保持系统
+  - 删除不必要的数据存储
+  - 专注于核心部件数据
+  - 提高代码效率
+- 添加适当的模式处理
+  - 添加用于父级设置的编辑模式切换
+  - 改进模式恢复
+  - 添加安全性检查
+
+**错误修复**
+- 修复部件恢复流程
+- 修复父级骨骼处理
+- 改进错误处理
+</details>
+</details>
+
+<details>
 <summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.1.6 (2025-02-09)</code></summary>
 
 <details>

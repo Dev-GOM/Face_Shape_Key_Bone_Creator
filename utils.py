@@ -402,16 +402,48 @@ def setup_bone_constraints(pose_bone, transform_type):
     # 본의 변환 모드 설정
     pose_bone.rotation_mode = 'XYZ'
     
+def find_existing_widgets(text_name):
+    """Find existing widgets collection and objects
+    
+    Args:
+        text_name: Full widget name (e.g., 'WGT_shape_key_ctrl_Ah')
+        
+    Returns:
+        tuple: (collection, handle, slider, text) or (None, None, None, None)
+    """
+    if text_name in bpy.data.collections:
+        collection = bpy.data.collections[text_name]
+        handle = collection.objects.get(text_name)
+        slider = collection.objects.get(f"SLIDE_{text_name}")
+        text = collection.objects.get(f"TEXT_{text_name}")
+        if all([handle, slider, text]):
+            return collection, handle, slider, text
+    return None, None, None, None
+
 def create_shape_key_text_widget(context, text_name, text_body, bone=None, shape_key=None):
     """Create text widget for shape key control
     
     Args:
         context: Current context
-        text_name: Name for the text object
+        text_name: Full widget name (e.g., 'WGT_shape_key_ctrl_Ah')
         text_body: Content of the text
         bone: Optional pose bone to attach widget to
     """
     try:
+        # 기존 위젯 찾기
+        collection, handle, slider_line, text_obj = find_existing_widgets(text_name)
+        
+        # 기존 위젯이 있으면 재사용
+        if handle:
+            # 본이 제공된 경우 커스텀 쉐이프로 설정
+            if bone and isinstance(bone, bpy.types.PoseBone):
+                bone.custom_shape = handle
+                bone.use_custom_shape_bone_size = True
+                bone.custom_shape_scale_xyz = (1, 1, 1)
+                bone.custom_shape_translation = (0, 0, 0)
+                bone.custom_shape_rotation_euler = (0, 0, 0)
+            return handle, ""
+
         # 현재 선택된 오브젝트와 모드 저장
         active_object = context.active_object
         active_mode = context.mode
@@ -614,7 +646,7 @@ def get_shape_key_drivers(self, context):
     return items
 
 def store_custom_widgets(armature):
-    """Store custom widget information for bones
+    """Store custom widget information and parent relationship
     Only stores custom widgets that start with 'WGT_shape_key_ctrl'
     """
     # 현재 모드 확인
@@ -630,16 +662,13 @@ def store_custom_widgets(armature):
             pose_bone.custom_shape.name.startswith('WGT_shape_key_ctrl')):
             stored_widgets[pose_bone.name] = {
                 'widget': pose_bone.custom_shape,
-                'size': pose_bone.use_custom_shape_bone_size,
-                'scale': pose_bone.custom_shape_scale_xyz,
-                'translation': pose_bone.custom_shape_translation,
-                'rotation': pose_bone.custom_shape_rotation_euler
+                'parent': pose_bone.parent.name if pose_bone.parent else None
             }
     
     return stored_widgets
 
 def restore_custom_widgets(armature, stored_widgets):
-    """Restore custom widget information to bones"""
+    """Restore custom widget information and parent relationship"""
     # 현재 선택 상태 저장
     current_mode = bpy.context.mode
     
@@ -654,19 +683,29 @@ def restore_custom_widgets(armature, stored_widgets):
         if base_name in stored_widgets:
             bone_mapping[base_name] = new_bone.name
     
-    # 커스텀 위젯 복원
-    for old_bone_name, widget_info in stored_widgets.items():
+    # 커스텀 위젯과 부모 관계 복원
+    for old_bone_name, stored_data in stored_widgets.items():
         # 새로운 본 이름 찾기
         new_bone_name = bone_mapping.get(old_bone_name, old_bone_name)
         
         if new_bone_name in armature.pose.bones:
             pose_bone = armature.pose.bones[new_bone_name]
-            widget = widget_info['widget']
+            widget = stored_data['widget']
+            parent_name = stored_data['parent']
             
             # 위젯이 여전히 존재하는지 확인
             if widget and widget.name in bpy.data.objects:
                 # 커스텀 쉐이프 설정
                 pose_bone.custom_shape = widget
+            
+            # 부모 관계 복원
+            if parent_name:
+                # 에딧 모드로 전환
+                bpy.ops.object.mode_set(mode='EDIT')
+                edit_bone = armature.data.edit_bones[new_bone_name]
+                if parent_name in armature.data.edit_bones:
+                    edit_bone.parent = armature.data.edit_bones[parent_name]
+                bpy.ops.object.mode_set(mode='POSE')
 
 def transform_handler(scene):
     """Transform handler for auto-sync"""

@@ -1087,8 +1087,7 @@ class ARMATURE_OT_rigify_regenerate_with_widgets(Operator):
             if not metarig:
                 self.report({'ERROR'}, "Metarig not found")
                 return {'CANCELLED'}
-                
-            metarig.hide_viewport = False
+
             metarig.hide_select = False
             metarig.hide_set(False)
             metarig.select_set(True)
@@ -1108,7 +1107,6 @@ class ARMATURE_OT_rigify_regenerate_with_widgets(Operator):
             utils.restore_custom_widgets(new_rigify_rig, stored_widgets)
 
             # 메타리그 비활성화
-            metarig.hide_viewport = True
             metarig.hide_select = True
             metarig.hide_set(True)
 
