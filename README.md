@@ -69,6 +69,16 @@ Shape Key Bone Control Creator is a Blender add-on that helps you visualize and 
 - Fix default driver values
 - Remove unnecessary shape key updates
 
+**Widget System Fixes**
+- Fix widget preservation during regeneration
+  - Add proper mode handling for widget operations
+  - Fix custom shape assignment issues
+  - Improve bone name mapping system
+- Optimize widget handling process
+  - Remove unnecessary property transfers
+  - Focus on essential widget data
+  - Add proper existence checks
+
 **Important Note**
 - Always use the addon's "Regenerate (Preserve Widgets)" button
 - Using Blender's default regenerate button will result in:
@@ -124,6 +134,16 @@ Shape Key Bone Control Creator is a Blender add-on that helps you visualize and 
 - 리제네레이트 시 위젯 초기화 문제 수정
 - 기본 드라이버 값 수정
 - 불필요한 쉐이프 키 업데이트 제거
+
+**위젯 시스템 수정**
+- 리제네레이트 시 위젯 보존 수정
+  - 위젯 작업을 위한 적절한 모드 처리 추가
+  - 커스텀 쉐이프 할당 문제 수정
+  - 본 이름 매핑 시스템 개선
+- 위젯 처리 프로세스 최적화
+  - 불필요한 속성 전송 제거
+  - 핵심 위젯 데이터에 집중
+  - 적절한 존재 여부 확인 추가
 
 **중요 사항**
 - 반드시 애드온의 "리제네레이트 (위젯 유지)" 버튼을 사용하세요
@@ -181,6 +201,16 @@ Shape Key Bone Control Creator is a Blender add-on that helps you visualize and 
 - デフォルトドライバー値を修正
 - 不要なシェイプキー更新を削除
 
+**ウィジェットシステムの修正**
+- 再生成時のウィジェット保持を修正
+  - ウィジェット操作の適切なモード処理を追加
+  - カスタムシェイプ割り当ての問題を修正
+  - ボーン名マッピングシステムを改善
+- ウィジェット処理プロセスを最適化
+  - 不要なプロパティ転送を削除
+  - 重要なウィジェットデータに焦点を当て
+  - 適切な存在チェックを追加
+
 **重要な注意事項**
 - 必ずアドオンの「再生成（ウィジェット保持）」ボタンを使用してください
 - Blenderのデフォルトの再生成ボタンを使用すると：
@@ -236,6 +266,16 @@ Shape Key Bone Control Creator is a Blender add-on that helps you visualize and 
 - 修复重新生成时部件重置问题
 - 修复默认驱动器值
 - 删除不必要的形态键更新
+
+**部件系统修复**
+- 修复重新生成时的部件保存
+  - 添加部件操作的适当模式处理
+  - 修复自定义形状分配问题
+  - 改进骨骼名称映射系统
+- 优化部件处理流程
+  - 删除不必要的属性传输
+  - 专注于核心部件数据
+  - 添加适当的存在性检查
 
 **重要提示**
 - 务必使用插件的"重新生成（保留部件）"按钮
