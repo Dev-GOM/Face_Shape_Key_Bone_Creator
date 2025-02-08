@@ -19,78 +19,89 @@ Shape Key Bone Control Creator is a Blender add-on that helps you visualize and 
 ## Version History / 버전 기록 / バージョン履歴 / 版本历史
 
 <details>
-<summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.1.1 (2025-02-08)</code></summary>
+<summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.1.2 (2025-02-08)</code></summary>
+
+![Shape Key UI Preview](./images/shape_key_ui_preview.png)
+![Driver Adjustment](./images/driver_adjustment.png)
 
 <details>
 <summary><code style="color: #28a745;">🇺🇸 English</code></summary>
 
-**Slider Positioning System Update**
-- Automatic slider positioning based on shape key ranges:
-  - Center alignment for -1~1 range shape keys
-  - Left alignment for 0~1 range shape keys
-  - Proportional positioning for custom ranges
-- Fixed shape key value range detection using slider_min/max
-- Improved visual feedback for shape key control
-- Added debug logging for slider positioning
+**Shape Key UI Improvements**
+- Add display functionality for all visible mesh shape keys
+  - Show all shape key meshes visible in scene
+  - Improve shape key list visibility
+- Enhance driver UI stability
+  - Add existence check for animation_data and drivers
+  - Handle errors for shape keys without drivers
+- Improve driver influence adjustment UI
+  - Add mesh name, shape key name, and transform type to popup dialog
+  - Enhance slider UI for better control
 
 **Bug Fixes**
-- Fixed shape collection property in Apply Shape Key to Bone operator
-- Fixed property not found errors in operator UI
-- Improved collection handling in shape key bone operations
+- Fix error occurring when processing shape keys without drivers
+- Improve error handling in shape key operations
+- Add proper checks for animation data existence
 </details>
 
 <details>
 <summary><code style="color: #28a745;">🇰🇷 한글</code></summary>
 
-**슬라이더 위치 시스템 업데이트**
-- 쉐이프 키 범위에 따른 자동 슬라이더 위치 조정:
-  - -1~1 범위: 본이 슬라이더 중앙에 위치
-  - 0~1 범위: 본 기준 왼쪽 정렬
-  - 커스텀 범위: 비율에 따른 위치 조정
-- slider_min/max를 사용한 쉐이프 키 값 범위 감지 개선
-- 시각적 피드백 향상
-- 슬라이더 위치 설정 디버그 로깅 추가
+**쉐이프 키 UI 개선**
+- 모든 가시적인 메쉬의 쉐이프 키 표시 기능 추가
+  - 씬에서 보이는 모든 쉐이프 키 메쉬 표시
+  - 쉐이프 키 리스트 가시성 개선
+- 드라이버 UI 안정성 향상
+  - animation_data와 drivers 존재 여부 체크 추가
+  - 드라이버가 없는 쉐이프 키에 대한 에러 처리
+- 드라이버 영향도 조정 UI 개선
+  - 팝업 다이얼로그에 메쉬 이름, 쉐이프 키 이름, 변환 타입 표시
+  - 더 나은 제어를 위한 슬라이더 UI 개선
 
 **버그 수정**
-- Apply Shape Key to Bone 오퍼레이터의 shape collection 속성 수정
-- 오퍼레이터 UI의 속성 찾을 수 없음 오류 수정
-- 쉐이프 키 본 작업에서 컬렉션 처리 개선
+- 드라이버가 없는 쉐이프 키 처리 시 발생하는 에러 수정
+- 쉐이프 키 작업의 에러 처리 개선
+- 애니메이션 데이터 존재 여부 체크 추가
 </details>
 
 <details>
 <summary><code style="color: #28a745;">🇯🇵 日本語</code></summary>
 
-**スライダー位置システムの更新**
-- シェイプキーの範囲に基づくスライダーの自動位置調整:
-  - -1~1範囲: ボーンがスライダーの中央に配置
-  - 0~1範囲: ボーンを基準に左寄せ
-  - カスタム範囲: 比率に応じた位置調整
-- slider_min/maxを使用したシェイプキーの値範囲検出を改善
-- ビジュアルフィードバックを向上
-- スライダー位置設定のデバッグログを追加
+**シェイプキーUI改善**
+- すべての可視メッシュのシェイプキー表示機能を追加
+  - シーンに表示されているすべてのシェイプキーメッシュを表示
+  - シェイプキーリストの可視性を改善
+- ドライバーUIの安定性向上
+  - animation_dataとdriversの存在チェックを追加
+  - ドライバーのないシェイプキーのエラー処理
+- ドライバーの影響度調整UI改善
+  - ポップアップダイアログにメッシュ名、シェイプキー名、変換タイプを表示
+  - より良い制御のためのスライダーUI改善
 
 **バグ修正**
-- Apply Shape Key to Boneオペレーターのshape collectionプロパティを修正
-- オペレーターUIのプロパティが見つからないエラーを修正
-- シェイプキーボーン操作のコレクション処理を改善
+- ドライバーのないシェイプキー処理時のエラーを修正
+- シェイプキー操作のエラー処理を改善
+- アニメーションデータの存在チェックを追加
 </details>
 
 <details>
 <summary><code style="color: #28a745;">🇨🇳 中文</code></summary>
 
-**滑块位置系统更新**
-- 基于形态键范围的滑块自动定位:
-  - -1~1范围: 骨骼位于滑块中央
-  - 0~1范围: 滑块左对齐到骨骼
-  - 自定义范围: 按比例调整位置
-- 使用slider_min/max改进形态键值范围检测
-- 增强视觉反馈
-- 添加滑块位置设置调试日志
+**形态键UI改进**
+- 添加显示所有可见网格形态键的功能
+  - 显示场景中所有可见的形态键网格
+  - 改进形态键列表可见性
+- 增强驱动器UI稳定性
+  - 添加animation_data和drivers存在性检查
+  - 处理没有驱动器的形态键错误
+- 改进驱动器影响度调整UI
+  - 在弹出对话框中显示网格名称、形态键名称和变换类型
+  - 改进滑块UI以获得更好的控制
 
 **错误修复**
-- 修复Apply Shape Key to Bone操作器中的shape collection属性
-- 修复操作器UI中的属性未找到错误
-- 改进形态键骨骼操作中的集合处理
+- 修复处理没有驱动器的形态键时出现的错误
+- 改进形态键操作的错误处理
+- 添加动画数据存在性检查
 </details>
 </details>
 
