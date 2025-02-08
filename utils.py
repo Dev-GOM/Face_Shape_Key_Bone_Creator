@@ -105,9 +105,6 @@ def setup_shape_key_driver(armature, bone_name, shape_key, transform_type, multi
                 
         if mesh_obj:
             mesh_obj.active_shape_key_index = 0  # Basis 선택
-            
-            # multiplier 속성 초기화 추가
-            shape_key.multiplier = multiplier
         
         return True, ""
         
@@ -403,8 +400,8 @@ def create_shape_key_text_widget(context, text_name, text_body, bone=None, shape
 
         # shape_key가 ShapeKey 객체인 경우 범위 확인
         if shape_key and isinstance(shape_key, bpy.types.ShapeKey):
-            min_value = shape_key.slider_min  # value_min 대신 slider_min 사용
-            max_value = shape_key.slider_max  # value_max 대신 slider_max 사용
+            min_value = shape_key.slider_min
+            max_value = shape_key.slider_max
             
             print(f"Shape key range: {min_value} ~ {max_value}")
             

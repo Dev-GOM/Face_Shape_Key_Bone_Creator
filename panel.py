@@ -91,18 +91,6 @@ class SHAPEKEY_PT_tools_creator(Panel):
         row.operator("object.recreate_slider_templates", 
                         icon='FILE_REFRESH', 
                         text="Recreate Templates")
-        
-        # 포즈 모드 UI
-        if context.mode == 'POSE' and context.active_pose_bone:
-            box = layout.box()
-            box.operator("object.create_shape_key_slider", 
-                        text="Create Shape Key Slider",
-                        icon='ADD')
-        else:
-            box = layout.box()
-            row = box.row()
-            row.label(text="Select a bone in Pose mode", 
-                    icon='INFO')
 
         # 메타리그 선택 UI
         box = layout.box()
@@ -127,7 +115,8 @@ class SHAPEKEY_PT_tools_creator(Panel):
         if context.scene.metarig:
             row = box.row()
             row.operator("object.add_shape_key_bone", 
-                        text="Add Shape Key Bone")
+                        text="Add Shape Key Bone", 
+                           icon='BONE_DATA')
         
         # 본 삭제 버튼 (에딧 모드나 포즈 모드에서 리기파이 본이 선택된 경우에만 표시)
         if context.mode in {'EDIT_ARMATURE', 'POSE'}:
@@ -145,13 +134,32 @@ class SHAPEKEY_PT_tools_creator(Panel):
                 row.operator("edit.delete_shape_key_bone", 
                            text="Delete Shape Key Bone", 
                            icon='TRASH')
-
-        if context.mode == 'POSE':
-            available_meshes = utils.get_available_meshes(context)
-            
-            if available_meshes:
-                layout.operator("object.apply_shape_key_to_bone", text="Apply to Bone")
+        
+        # 포즈 모드 UI
+        if context.mode == 'POSE' and context.active_pose_bone:
+            box = layout.box()
+            box.operator("object.create_shape_key_slider", 
+                        text="Create Shape Key Slider",
+                        icon='ADD')
+        else:
+            box = layout.box()
+            row = box.row()
+            row.label(text="Select a bone in Pose mode", 
+                    icon='INFO')
                 
+        # Apply to Bone 버튼 - 리기파이 리그의 에딧 모드에서만 활성화
+        available_meshes = utils.get_available_meshes(context)
+        if available_meshes:
+            row = layout.row()
+            row.operator("object.apply_shape_key_to_bone", 
+                        text="Apply to Bone", 
+                        icon='CHECKMARK')
+            # 리기파이 리그가 선택되고 에딧 모드일 때만 활성화
+            row.enabled = (context.mode == 'EDIT_ARMATURE' and 
+                        is_rigify_bone)
+
+        if context.mode == 'POSE':            
+            if available_meshes:
                 box = layout.box()
                 col = box.column()
                 
@@ -174,7 +182,9 @@ class SHAPEKEY_PT_tools_creator(Panel):
 
         # 오브젝트 모드
         elif obj and obj.type == 'MESH' and obj.data.shape_keys:
-            layout.operator("object.create_shape_key_text", text="Create Shape Key Text")
+            layout.operator("object.create_shape_key_text", 
+                            text="Create Shape Key Text",
+                            icon='FONT_DATA')
             
             box = layout.box()
             col = box.column()

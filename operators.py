@@ -259,10 +259,12 @@ class OBJECT_OT_apply_shape_key_to_bone(Operator):
         # 현재 모드에 따라 본 이름 가져오기
         if context.mode == 'EDIT_ARMATURE':
             bone_name = context.active_bone.name
-            bone = context.active_bone
+            edit_bone = context.active_bone
+            pose_bone = armature.pose.bones[bone_name]  # PoseBone 가져오기
         else:
             bone_name = context.active_pose_bone.name
-            bone = context.active_pose_bone
+            pose_bone = context.active_pose_bone
+            edit_bone = None
         
         target_mesh = bpy.data.objects.get(self.target_mesh)
         if not target_mesh:
@@ -274,18 +276,19 @@ class OBJECT_OT_apply_shape_key_to_bone(Operator):
             if self.target_shape_key in target_mesh.data.shape_keys.key_blocks:
                 shape_key = target_mesh.data.shape_keys.key_blocks[self.target_shape_key]
                 
-                # 위젯 생성
-                widget, error = utils.create_shape_key_text_widget(
-                    context,
-                    f"WGT_{bone_name}",
-                    self.target_shape_key,  # 쉐이프 키 이름을 텍스트로 사용
-                    bone,
-                    shape_key  # ShapeKey 객체 전달
-                )
-                
-                if not widget:
-                    self.report({'ERROR'}, f"Failed to create widget: {error}")
-                    return {'CANCELLED'}
+                # 컬렉션이 선택되지 않은 경우에만 새 위젯 생성
+                if not self.shape_collection:
+                    widget, error = utils.create_shape_key_text_widget(
+                        context,
+                        f"WGT_{bone_name}",
+                        self.target_shape_key,
+                        pose_bone,  # PoseBone 전달
+                        shape_key
+                    )
+                    
+                    if not widget:
+                        self.report({'ERROR'}, f"Failed to create widget: {error}")
+                        return {'CANCELLED'}
                 
                 success, error_message = utils.setup_shape_key_driver(
                     armature,
@@ -300,27 +303,82 @@ class OBJECT_OT_apply_shape_key_to_bone(Operator):
                     return {'CANCELLED'}
                 
                 # 2. 쉐이프 컬렉션 처리
-                if self.shape_collection:
+                if self.shape_collection:  # 컬렉션이 선택된 경우
                     collection = bpy.data.collections.get(self.shape_collection)
                     if collection and collection.objects:
                         # 모드에 따라 적절한 매트릭스 가져오기
-                        if context.mode == 'EDIT_ARMATURE':
-                            bone_matrix = armature.matrix_world @ context.active_bone.matrix
+                        if edit_bone:
+                            bone_matrix = armature.matrix_world @ edit_bone.matrix
+                            bone_length = edit_bone.length
                         else:
-                            bone_matrix = armature.matrix_world @ context.active_pose_bone.matrix
+                            bone_matrix = armature.matrix_world @ pose_bone.matrix
+                            bone_length = pose_bone.length
                         
-                        for obj in collection.objects:
-                            # 기존 페어런트 관계 해제
-                            if obj.parent:
-                                original_matrix = obj.matrix_world.copy()
-                                obj.parent = None
-                                obj.matrix_world = original_matrix
+                        bone_loc = bone_matrix.translation
+                        bone_rot = bone_matrix.to_euler('XYZ')
+                        bone_rot_quat = bone_matrix.to_quaternion()
+                        
+                        # 스케일 계산
+                        base_scale = bone_length * 0.5
+                        slider_width = bone_length * 2
+                        slider_height = bone_length * 0.1
+                        text_scale = bone_length * 0.4
+                        
+                        # 슬라이더 오프셋 계산
+                        base_offset = mathutils.Vector((-slider_width / 2, 0, 0))
+                        
+                        # shape_key 범위에 따른 오프셋 조정
+                        if shape_key:
+                            min_value = shape_key.slider_min
+                            max_value = shape_key.slider_max
                             
-                            # 새로운 페어런트 설정
-                            obj.parent = armature
-                            obj.parent_type = 'BONE'
-                            obj.parent_bone = bone_name
-                            obj.matrix_parent_inverse = bone_matrix.inverted()
+                            if min_value == -1 and max_value == 1:
+                                base_offset = mathutils.Vector((0, 0, 0))
+                            elif not (min_value == 0 and max_value == 1):
+                                total_range = max_value - min_value
+                                mid_value = (max_value + min_value) / 2
+                                offset_ratio = -mid_value / total_range
+                                x_offset = slider_width * offset_ratio
+                                base_offset += mathutils.Vector((x_offset, 0, 0))
+                        
+                        # 오프셋을 본의 회전에 맞춰 회전
+                        base_offset.rotate(bone_rot_quat)
+                        
+                        # 위젯 오브젝트 찾기 및 설정
+                        for obj in collection.objects:
+                            if obj.name.startswith('WGT_'):
+                                # 본의 커스텀 쉐이프로 설정
+                                pose_bone.custom_shape = obj
+                                pose_bone.use_custom_shape_bone_size = True
+                                
+                                # 위젯 위치 및 회전 설정
+                                obj.location = bone_loc
+                                obj.rotation_euler = bone_rot
+                                obj.scale = mathutils.Vector((base_scale, base_scale, base_scale))
+                                
+                            elif obj.name.startswith('SLIDE_'):
+                                # 슬라이더 위치 및 회전 설정
+                                obj.location = bone_loc - base_offset
+                                obj.rotation_mode = 'XYZ'
+                                obj.rotation_euler = (math.radians(90), bone_rot.y, bone_rot.z)
+                                obj.scale = mathutils.Vector((slider_width, slider_height, base_scale))
+                                
+                            elif obj.name.startswith('TEXT_'):
+                                # 텍스트 위치 및 회전 설정
+                                text_offset = mathutils.Vector((0, bone_length * 0.3, 0))
+                                text_offset.rotate(bone_rot_quat)
+                                obj.location = bone_loc + text_offset
+                                obj.rotation_euler = bone_rot
+                                obj.scale = mathutils.Vector((text_scale, text_scale, text_scale))
+                else:  # 컬렉션이 선택되지 않은 경우
+                    # 새 컬렉션 생성
+                    new_collection = bpy.data.collections.new(f"ShapeObjects_{bone_name}")
+                    context.scene.collection.children.link(new_collection)
+                    # 새로 생성된 위젯들을 새 컬렉션에 추가
+                    for obj in [widget]:  # 필요한 경우 다른 위젯 객체들도 추가
+                        if obj.name in context.scene.collection.objects:
+                            context.scene.collection.objects.unlink(obj)
+                        new_collection.objects.link(obj)
                 
                 self.report({'INFO'}, f"Successfully connected bone '{bone_name}' to shape key '{self.target_shape_key}'")
             else:

@@ -19,6 +19,134 @@ Shape Key Bone Control Creator is a Blender add-on that helps you visualize and 
 ## Version History / 버전 기록 / バージョン履歴 / 版本历史
 
 <details>
+<summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.1.4 (2025-02-08)</code></summary>
+
+<details>
+<summary><code style="color: #28a745;">🇺🇸 English</code></summary>
+
+**UI Improvements**
+- Add appropriate icons for better visual feedback
+  - Add bone icon to bone-related operations
+  - Add text icon to text creation operations
+- Improve button organization and visibility
+- Update Apply to Bone button behavior
+  - Show button consistently
+  - Enable only in Rigify rig edit mode
+
+**Bone Handling Enhancement**
+- Fix EditBone custom shape assignment
+  - Add proper PoseBone handling in edit mode
+  - Improve bone matrix calculations
+  - Fix widget positioning in edit mode
+- Add proper bone mode detection and handling
+
+**Shape Key List Improvements**
+- Show different lists for different modes
+  - Show all available meshes in pose mode
+  - Show only selected mesh in object mode
+- Maintain consistent list visibility
+
+**Bug Fixes**
+- Fix 'EditBone has no attribute custom_shape' error
+- Improve error handling in bone operations
+- Fix widget collection handling
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇰🇷 한글</code></summary>
+
+**UI 개선**
+- 적절한 아이콘 추가로 시각적 피드백 향상
+  - 본 관련 작업에 본 아이콘 추가
+  - 텍스트 생성 작업에 텍스트 아이콘 추가
+- 버튼 구성 및 가시성 개선
+- Apply to Bone 버튼 동작 개선
+  - 버튼 일관성 있게 표시
+  - 리기파이 리그 에딧 모드에서만 활성화
+
+**본 처리 기능 강화**
+- EditBone 커스텀 쉐이프 할당 수정
+  - 에딧 모드에서 PoseBone 처리 개선
+  - 본 매트릭스 계산 개선
+  - 에딧 모드에서 위젯 위치 설정 수정
+- 본 모드 감지 및 처리 개선
+
+**쉐이프 키 리스트 개선**
+- 모드별 다른 리스트 표시
+  - 포즈 모드에서 모든 사용 가능한 메쉬 표시
+  - 오브젝트 모드에서 선택된 메쉬만 표시
+- 일관된 리스트 가시성 유지
+
+**버그 수정**
+- 'EditBone has no attribute custom_shape' 에러 수정
+- 본 작업 관련 에러 처리 개선
+- 위젯 컬렉션 처리 수정
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇯🇵 日本語</code></summary>
+
+**UI改善**
+- 適切なアイコンを追加し、視覚的フィードバックを向上
+  - ボーン関連操作にボーンアイコンを追加
+  - テキスト作成操作にテキストアイコンを追加
+- ボタンの構成と可視性を改善
+- Apply to Boneボタンの動作を改善
+  - ボタンを一貫して表示
+  - Rigifyリグの編集モードでのみ有効化
+
+**ボーン処理機能の強化**
+- EditBoneのカスタムシェイプ割り当てを修正
+  - 編集モードでのPoseBone処理を改善
+  - ボーンマトリックス計算を改善
+  - 編集モードでのウィジェット位置設定を修正
+- ボーンモードの検出と処理を改善
+
+**シェイプキーリストの改善**
+- モードごとに異なるリストを表示
+  - ポーズモードで利用可能な全メッシュを表示
+  - オブジェクトモードで選択メッシュのみ表示
+- 一貫したリスト可視性を維持
+
+**バグ修正**
+- 'EditBone has no attribute custom_shape'エラーを修正
+- ボーン操作関連のエラー処理を改善
+- ウィジェットコレクション処理を修正
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇨🇳 中文</code></summary>
+
+**UI改进**
+- 添加适当图标以提供更好的视觉反馈
+  - 为骨骼相关操作添加骨骼图标
+  - 为文本创建操作添加文本图标
+- 改进按钮组织和可见性
+- 改进Apply to Bone按钮行为
+  - 始终显示按钮
+  - 仅在Rigify骨架编辑模式下启用
+
+**骨骼处理增强**
+- 修复EditBone自定义形状分配
+  - 改进编辑模式下的PoseBone处理
+  - 改进骨骼矩阵计算
+  - 修复编辑模式下的部件位置
+- 添加适当的骨骼模式检测和处理
+
+**形态键列表改进**
+- 为不同模式显示不同列表
+  - 在姿态模式下显示所有可用网格
+  - 在对象模式下仅显示选定网格
+- 保持一致的列表可见性
+
+**错误修复**
+- 修复'EditBone has no attribute custom_shape'错误
+- 改进骨骼操作错误处理
+- 修复部件集合处理
+</details>
+</details>
+
+<details>
 <summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.1.3 (2025-02-08)</code></summary>
 
 <details>
