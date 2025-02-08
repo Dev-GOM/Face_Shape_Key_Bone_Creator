@@ -106,6 +106,82 @@ Shape Key Bone Control Creator is a Blender add-on that helps you visualize and 
 </details>
 
 <details>
+<summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.1.1 (2025-02-08)</code></summary>
+
+<details>
+<summary><code style="color: #28a745;">🇺🇸 English</code></summary>
+
+**Slider Positioning System Update**
+- Automatic slider positioning based on shape key ranges:
+  - Center alignment for -1~1 range shape keys
+  - Left alignment for 0~1 range shape keys
+  - Proportional positioning for custom ranges
+- Fixed shape key value range detection using slider_min/max
+- Improved visual feedback for shape key control
+- Added debug logging for slider positioning
+
+**Bug Fixes**
+- Fixed shape collection property in Apply Shape Key to Bone operator
+- Fixed property not found errors in operator UI
+- Improved collection handling in shape key bone operations
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇰🇷 한글</code></summary>
+
+**슬라이더 위치 시스템 업데이트**
+- 쉐이프 키 범위에 따른 자동 슬라이더 위치 조정:
+  - -1~1 범위: 본이 슬라이더 중앙에 위치
+  - 0~1 범위: 본 기준 왼쪽 정렬
+  - 커스텀 범위: 비율에 따른 위치 조정
+- slider_min/max를 사용한 쉐이프 키 값 범위 감지 개선
+- 시각적 피드백 향상
+- 슬라이더 위치 설정 디버그 로깅 추가
+
+**버그 수정**
+- Apply Shape Key to Bone 오퍼레이터의 shape collection 속성 수정
+- 오퍼레이터 UI의 속성 찾을 수 없음 오류 수정
+- 쉐이프 키 본 작업에서 컬렉션 처리 개선
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇯🇵 日本語</code></summary>
+
+**スライダー位置システムの更新**
+- シェイプキーの範囲に基づくスライダーの自動位置調整:
+  - -1~1範囲: ボーンがスライダーの中央に配置
+  - 0~1範囲: ボーンを基準に左寄せ
+  - カスタム範囲: 比率に応じた位置調整
+- slider_min/maxを使用したシェイプキーの値範囲検出を改善
+- ビジュアルフィードバックを向上
+- スライダー位置設定のデバッグログを追加
+
+**バグ修正**
+- Apply Shape Key to Boneオペレーターのshape collectionプロパティを修正
+- オペレーターUIのプロパティが見つからないエラーを修正
+- シェイプキーボーン操作のコレクション処理を改善
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇨🇳 中文</code></summary>
+
+**滑块位置系统更新**
+- 基于形态键范围的滑块自动定位:
+  - -1~1范围: 骨骼位于滑块中央
+  - 0~1范围: 滑块左对齐到骨骼
+  - 自定义范围: 按比例调整位置
+- 使用slider_min/max改进形态键值范围检测
+- 增强视觉反馈
+- 添加滑块位置设置调试日志
+
+**错误修复**
+- 修复Apply Shape Key to Bone操作器中的shape collection属性
+- 修复操作器UI中的属性未找到错误
+- 改进形态键骨骼操作中的集合处理
+</details>
+</details>
+
+<details>
 <summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.1 (2025-02-08)</code></summary>
 
 <details>
