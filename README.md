@@ -6,16 +6,19 @@
 Shape Key Bone Control Creator is a Blender add-on that helps you visualize and control shape keys through bone-based sliders.
 </code>
 
-## Preview / 미리보기 / プレビュー / 预览
+## 📺 Video Tutorials / 비디오 튜토리얼 / ビデオチュートリアル / 视频教程
 
-[![Video Tutorial V1.0](https://img.youtube.com/vi/ZL2vitS9E3M/maxresdefault.jpg)](https://youtu.be/ZL2vitS9E3M)
-[![Video Tutorial V1.2](https://img.youtube.com/vi/gOa4OjP5So/maxresdefault.jpg)](https://youtu.be/-gOa4OjP5So)
+### V1.2.0 (Latest/최신/最新/最新)
+[![Shape Key Control Creator V1.2](https://img.youtube.com/vi/-gOa4OjP5So/maxresdefault.jpg)](https://youtu.be/-gOa4OjP5So)
+
+### V1.0.0
+[![Shape Key Control Creator V1.0](https://img.youtube.com/vi/ZL2vitS9E3M/maxresdefault.jpg)](https://youtu.be/ZL2vitS9E3M)
 
 <details>
-<summary><code style="color: #d73a49; font-size: 1.1em;">▶️ Watch on YouTube / 유튜브에서 보기 / YouTubeで見る / 在YouTube上观看</code></summary>
+<summary><code style="color: #d73a49; font-size: 1.1em;">▶️ Tutorial List / 튜토리얼 목록 / チュートリアル一覧 / 教程列表</code></summary>
 
-[Shape Keys Bone And Custom Shape Creater V1.0 - Blender Shape Keys Animation Add-on](https://youtu.be/ZL2vitS9E3M)
-[Shape Keys Bone And Custom Shape Creater V1.2 - Blender Shape Keys Animation Add-on](https://youtu.be/gOa4OjP5So)
+- [Shape Key Control Creator V1.2 - New Features and Improvements](https://youtu.be/-gOa4OjP5So)
+- [Shape Key Control Creator V1.0 - Basic Tutorial](https://youtu.be/ZL2vitS9E3M)
 </details>
 
 ## Version History / 버전 기록 / バージョン履歴 / 版本历史
