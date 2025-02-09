@@ -30,6 +30,7 @@ from . import translations
 from . import utils
 from . import operators
 from . import panel
+from . import shape_key_utility
 
 def register():
     """Register all modules and translations"""
@@ -39,6 +40,12 @@ def register():
         
         # Register classes
         for cls in operators.classes:
+            try:
+                bpy.utils.register_class(cls)
+            except Exception as e:
+                print(f"Failed to register {cls.__name__}: {str(e)}")
+                
+        for cls in shape_key_utility.classes:
             try:
                 bpy.utils.register_class(cls)
             except Exception as e:
@@ -115,6 +122,12 @@ def unregister():
         
         # Unregister classes
         for cls in reversed(panel.classes):
+            try:
+                bpy.utils.unregister_class(cls)
+            except Exception as e:
+                print(f"Failed to unregister {cls.__name__}: {str(e)}")
+                
+        for cls in reversed(shape_key_utility.classes):
             try:
                 bpy.utils.unregister_class(cls)
             except Exception as e:

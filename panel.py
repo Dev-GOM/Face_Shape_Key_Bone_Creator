@@ -209,6 +209,17 @@ class SHAPEKEY_PT_tools_creator(Panel):
                 scroll = scroll_box.column_flow(columns=1, align=True)
                 scroll.scale_y = 1
                 utils.draw_shape_key_list(scroll, obj)
+
+        # 쉐이프 키 관련 폴드아웃
+        box = layout.box()
+        box.label(text="Shape Key Adjustments")
+        row = box.row(align=True)
+        row.prop(context.window_manager, "show_shape_key_adjustments", icon='TRIA_DOWN' if context.window_manager.get("show_shape_key_adjustments", False) else 'TRIA_RIGHT', icon_only=True)
+        row.label(text="Adjust Shape Key")
+
+        if context.window_manager.get("show_shape_key_adjustments", True):
+            row = box.row()
+            row.operator("object.shape_key_adjustments", text="Adjustments Shape Key")
                                 
 class SHAPE_OT_adjust_driver_value(Operator):
     """Adjust driver multiplier value"""

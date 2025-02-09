@@ -8,15 +8,185 @@ Shape Key Bone Control Creator is a Blender add-on that helps you visualize and 
 
 ## Preview / 미리보기 / プレビュー / 预览
 
-[![Video Tutorial](https://img.youtube.com/vi/ZL2vitS9E3M/maxresdefault.jpg)](https://youtu.be/ZL2vitS9E3M)
+[![Video Tutorial V1.0](https://img.youtube.com/vi/ZL2vitS9E3M/maxresdefault.jpg)](https://youtu.be/ZL2vitS9E3M)
+[![Video Tutorial V1.2](https://img.youtube.com/vi/gOa4OjP5So/maxresdefault.jpg)](https://youtu.be/-gOa4OjP5So)
 
 <details>
 <summary><code style="color: #d73a49; font-size: 1.1em;">▶️ Watch on YouTube / 유튜브에서 보기 / YouTubeで見る / 在YouTube上观看</code></summary>
 
-[Shape Keys Bone And Custom Shape Creater - Blender Face Animation Add-on](https://youtu.be/ZL2vitS9E3M)
+[Shape Keys Bone And Custom Shape Creater V1.0 - Blender Shape Keys Animation Add-on](https://youtu.be/ZL2vitS9E3M)
+[Shape Keys Bone And Custom Shape Creater V1.2 - Blender Shape Keys Animation Add-on](https://youtu.be/gOa4OjP5So)
 </details>
 
 ## Version History / 버전 기록 / バージョン履歴 / 版本历史
+
+<details>
+<summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.2.0 (2025-02-09)</code></summary>
+
+<details>
+<summary><code style="color: #28a745;">🇺🇸 English</code></summary>
+
+**Shape Key System Enhancement**
+- Add comprehensive shape key manipulation system
+  - Add shape key inversion functionality
+  - Add mirroring along specified axes
+  - Add normalization of deformations
+  - Add shape key merging capabilities
+  - Add split functionality based on threshold
+  - Add smoothing operations
+- Implement advanced shape key operations
+  - Add transfer between meshes
+  - Add cleanup of minimal deformations
+  - Add symmetrization options
+  - Add randomization features
+  - Add directional flipping
+  - Add mirrored duplication
+
+**UI/UX Improvements**
+- Enhanced shape key manipulation interface
+  - Add dedicated shape key selection UI
+  - Add operation-specific options
+  - Add intuitive controls for each function
+- Streamlined workflow improvements
+  - Remove unnecessary progress indicators
+  - Optimize calculation processes
+  - Improve error handling and feedback
+
+**Performance Optimization**
+- Optimize shape key calculations
+- Remove redundant operations
+- Improve memory usage
+- Enhance processing efficiency
+
+**Bug Fixes**
+- Fix calculation accuracy issues
+- Improve error handling
+- Enhance operation stability
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇰🇷 한글</code></summary>
+
+**쉐이프 키 시스템 강화**
+- 포괄적인 쉐이프 키 조작 시스템 추가
+  - 쉐이프 키 반전 기능 추가
+  - 지정된 축을 따라 미러링 추가
+  - 변형 정규화 추가
+  - 쉐이프 키 병합 기능 추가
+  - 임계값 기반 분할 기능 추가
+  - 스무딩 작업 추가
+- 고급 쉐이프 키 작업 구현
+  - 메쉬 간 전송 추가
+  - 최소 변형 정리 추가
+  - 대칭화 옵션 추가
+  - 무작위화 기능 추가
+  - 방향 뒤집기 추가
+  - 미러링 복제 추가
+
+**UI/UX 개선**
+- 쉐이프 키 조작 인터페이스 강화
+  - 전용 쉐이프 키 선택 UI 추가
+  - 작업별 옵션 추가
+  - 각 기능에 대한 직관적인 컨트롤 추가
+- 작업 흐름 개선
+  - 불필요한 진행 표시기 제거
+  - 계산 프로세스 최적화
+  - 오류 처리 및 피드백 개선
+
+**성능 최적화**
+- 쉐이프 키 계산 최적화
+- 중복 작업 제거
+- 메모리 사용 개선
+- 처리 효율성 향상
+
+**버그 수정**
+- 계산 정확도 문제 수정
+- 오류 처리 개선
+- 작업 안정성 향상
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇯🇵 日本語</code></summary>
+
+**シェイプキーシステムの強化**
+- 包括的なシェイプキー操作システムの追加
+  - シェイプキー反転機能の追加
+  - 指定軸に沿ったミラーリングの追加
+  - 変形の正規化の追加
+  - シェイプキー結合機能の追加
+  - しきい値に基づく分割機能の追加
+  - スムージング操作の追加
+- 高度なシェイプキー操作の実装
+  - メッシュ間の転送の追加
+  - 最小変形のクリーンアップの追加
+  - 対称化オプションの追加
+  - ランダム化機能の追加
+  - 方向反転の追加
+  - ミラーコピーの追加
+
+**UI/UX改善**
+- シェイプキー操作インターフェースの強化
+  - 専用シェイプキー選択UIの追加
+  - 操作固有のオプションの追加
+  - 各機能の直感的なコントロールの追加
+- ワークフローの改善
+  - 不要な進捗表示の削除
+  - 計算プロセスの最適化
+  - エラー処理とフィードバックの改善
+
+**パフォーマンスの最適化**
+- シェイプキー計算の最適化
+- 重複操作の削除
+- メモリ使用の改善
+- 処理効率の向上
+
+**バグ修正**
+- 計算精度の問題を修正
+- エラー処理の改善
+- 操作の安定性向上
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇨🇳 中文</code></summary>
+
+**形态键系统增强**
+- 添加全面的形态键操作系统
+  - 添加形态键反转功能
+  - 添加指定轴镜像
+  - 添加变形标准化
+  - 添加形态键合并功能
+  - 添加基于阈值的分割功能
+  - 添加平滑操作
+- 实现高级形态键操作
+  - 添加网格间传递
+  - 添加微小变形清理
+  - 添加对称化选项
+  - 添加随机化功能
+  - 添加方向翻转
+  - 添加镜像复制
+
+**UI/UX改进**
+- 增强形态键操作界面
+  - 添加专用形态键选择UI
+  - 添加操作特定选项
+  - 添加每个功能的直观控制
+- 简化工作流程改进
+  - 删除不必要的进度指示
+  - 优化计算过程
+  - 改进错误处理和反馈
+
+**性能优化**
+- 优化形态键计算
+- 删除冗余操作
+- 改进内存使用
+- 提高处理效率
+
+**错误修复**
+- 修复计算精度问题
+- 改进错误处理
+- 提高操作稳定性
+</details>
+</details>
 
 <details>
 <summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.1.8 (2025-02-09)</code></summary>
