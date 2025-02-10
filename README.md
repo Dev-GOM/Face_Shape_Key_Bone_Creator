@@ -26,6 +26,66 @@ Shape Key Bone Control Creator is a Blender add-on that helps you visualize and 
 ## Version History / 버전 기록 / バージョン履歴 / 版本历史
 
 <details>
+<summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.2.2 (2025-02-10)</code></summary>
+
+<details>
+<summary><code style="color: #28a745;">🇺🇸 English</code></summary>
+
+**Bug Fixes**
+- Fix "Sync Now" operation error
+- Add proper sync operation handling
+- Improve synchronization stability
+
+**System Improvements**
+- Enhance bone sync operation support
+- Add comprehensive error handling
+- Improve operation feedback
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇰🇷 한글</code></summary>
+
+**버그 수정**
+- "지금 동기화" 작업 오류 수정
+- 적절한 동기화 작업 처리 추가
+- 동기화 안정성 개선
+
+**시스템 개선**
+- 본 동기화 작업 지원 강화
+- 포괄적인 오류 처리 추가
+- 작업 피드백 개선
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇯🇵 日本語</code></summary>
+
+**バグ修正**
+- 「今すぐ同期」操作のエラーを修正
+- 適切な同期操作の処理を追加
+- 同期の安定性を改善
+
+**システム改善**
+- ボーン同期操作のサポートを強化
+- 包括的なエラー処理を追加
+- 操作フィードバックを改善
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇨🇳 中文</code></summary>
+
+**错误修复**
+- 修复"立即同步"操作错误
+- 添加适当的同步操作处理
+- 改进同步稳定性
+
+**系统改进**
+- 增强骨骼同步操作支持
+- 添加全面错误处理
+- 改进操作反馈
+</details>
+</details>
+
+<details>
 <summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.2.1 (2025-02-10)</code></summary>
 
 <details>
