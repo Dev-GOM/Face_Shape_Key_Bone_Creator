@@ -43,6 +43,21 @@ class ShapeKeyCommonProperties:
                     area.tag_redraw()
         except Exception as e:
             print(f"Error updating shape key selection: {str(e)}")
+            
+    def get_widget_collections(self, context):
+        """위젯 컬렉션 목록 가져오기"""
+        items = []
+        widgets_collection = bpy.data.collections.get("Widgets")
+        if widgets_collection and widgets_collection.children:
+            for col in widgets_collection.children:
+                items.append((col.name, col.name, ""))
+        return items
+
+    widget_collection: EnumProperty(
+        name="Widget Collection",
+        description="Select widget collection for the bone",
+        items=get_widget_collections
+    ) # type: ignore
 
     target_mesh: EnumProperty(
         name="Target Mesh",

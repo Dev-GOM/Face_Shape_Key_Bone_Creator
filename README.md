@@ -32,6 +32,106 @@ Shape Key Bone Control Creator is a Blender add-on that helps you visualize and 
 <summary><code style="color: #28a745;">🇺🇸 English</code></summary>
 
 **Bug Fixes**
+- Fix single bone deletion issues
+  - Add proper widget selection control
+  - Fix state persistence problems
+  - Improve deletion confirmation dialog
+- Fix synchronization operation bugs
+  - Add proper mode switching
+  - Fix state management
+  - Improve operation reliability
+
+**UI/UX Improvements**
+- Enhance single bone deletion interface
+  - Add manual widget selection
+  - Add shape key connection control
+  - Improve visual feedback
+- Add proper state cleanup
+  - Fix dialog persistence issues
+  - Improve operation feedback
+  - Add proper state initialization
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇰🇷 한글</code></summary>
+
+**버그 수정**
+- 단일 본 삭제 문제 수정
+  - 위젯 선택 컨트롤 추가
+  - 상태 유지 문제 수정
+  - 삭제 확인 대화상자 개선
+- 동기화 작업 버그 수정
+  - 모드 전환 개선
+  - 상태 관리 수정
+  - 작업 안정성 향상
+
+**UI/UX 개선**
+- 단일 본 삭제 인터페이스 강화
+  - 수동 위젯 선택 추가
+  - 쉐이프 키 연결 제어 추가
+  - 시각적 피드백 개선
+- 적절한 상태 정리 추가
+  - 대화상자 유지 문제 수정
+  - 작업 피드백 개선
+  - 상태 초기화 개선
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇯🇵 日本語</code></summary>
+
+**バグ修正**
+- 単一ボーン削除の問題を修正
+  - ウィジェット選択コントロールを追加
+  - 状態保持の問題を修正
+  - 削除確認ダイアログを改善
+- 同期操作のバグを修正
+  - モード切替を改善
+  - 状態管理を修正
+  - 操作の安定性を向上
+
+**UI/UX改善**
+- 単一ボーン削除インターフェースを強化
+  - 手動ウィジェット選択を追加
+  - シェイプキー接続制御を追加
+  - 視覚的フィードバックを改善
+- 適切な状態クリーンアップを追加
+  - ダイアログ保持の問題を修正
+  - 操作フィードバックを改善
+  - 状態初期化を改善
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇨🇳 中文</code></summary>
+
+**错误修复**
+- 修复单个骨骼删除问题
+  - 添加部件选择控制
+  - 修复状态保持问题
+  - 改进删除确认对话框
+- 修复同步操作错误
+  - 改进模式切换
+  - 修复状态管理
+  - 提高操作可靠性
+
+**UI/UX改进**
+- 增强单个骨骼删除界面
+  - 添加手动部件选择
+  - 添加形态键连接控制
+  - 改进视觉反馈
+- 添加适当的状态清理
+  - 修复对话框保持问题
+  - 改进操作反馈
+  - 改进状态初始化
+</details>
+</details>
+
+<details>
+<summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.2.2 (2025-02-10)</code></summary>
+
+<details>
+<summary><code style="color: #28a745;">🇺🇸 English</code></summary>
+
+**Bug Fixes**
 - Fix "Sync Now" operation error
 - Add proper sync operation handling
 - Improve synchronization stability

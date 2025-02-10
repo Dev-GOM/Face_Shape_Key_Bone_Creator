@@ -627,6 +627,12 @@ class EDIT_OT_sync_metarig_bone(Operator, properties.ShapeKeyCommonProperties):
             return False
 
     def invoke(self, context, event):
+        # 이전 정보 초기화
+        self.show_confirmation = False
+        self.selected_bones = ""
+        self.selected_collections = ""
+        self.selected_drivers = ""
+        
         # 선택된 본들 가져오기
         selected_bones = [bone.name for bone in context.selected_bones]
         
@@ -644,6 +650,14 @@ class EDIT_OT_sync_metarig_bone(Operator, properties.ShapeKeyCommonProperties):
         
         # 단일 본 선택시
         bone_name = selected_bones[0]
+        
+        # 위젯 컬렉션 찾기
+        widgets_collection = bpy.data.collections.get("Widgets")
+        if widgets_collection:
+            for col in widgets_collection.children:
+                if bone_name in col.name:
+                    self.widget_collection = col.name
+                    break
         
         # 연결된 메쉬와 쉐이프 키 찾기
         if bone_name.startswith("shape_key_ctrl_"):
@@ -701,24 +715,30 @@ class EDIT_OT_sync_metarig_bone(Operator, properties.ShapeKeyCommonProperties):
             # 경고 메시지
             box = layout.box()
             box.label(text="This will sync all selected bones with metarig", icon='INFO')
-        else:
+        else:            
             # 단일 본 선택시의 UI
             box = layout.box()
             box.label(text="Sync Settings:", icon='SETTINGS')
-            
-            # 메쉬 선택
-            row = box.row()
-            row.prop(self, "target_mesh")
-            
-            # 쉐이프 키 선택
-            if self.target_mesh:
-                row = box.row()
-                row.prop(self, "target_shape_key")
             
             # 본 정보
             row = box.row()
             row.label(text="Selected Bone:")
             row.label(text=context.active_bone.name)
+
+            # 위젯 컬렉션 선택
+            box = layout.box()
+            box.label(text="Widget Collection:", icon='OUTLINER_COLLECTION')
+            row = box.row()
+            row.prop(self, "widget_collection", text="")
+            
+            # 메쉬와 쉐이프 키 선택
+            box = layout.box()
+            box.label(text="Shape Key Settings:", icon='SHAPEKEY_DATA')
+            row = box.row()
+            row.prop(self, "target_mesh")
+            if self.target_mesh:
+                row = box.row()
+                row.prop(self, "target_shape_key")
 
     def execute(self, context):
         # 여러 본이 선택된 경우
@@ -742,14 +762,12 @@ class EDIT_OT_sync_metarig_bone(Operator, properties.ShapeKeyCommonProperties):
         
         # 단일 본 선택시
         bone_name = context.active_bone.name
-        # 위젯 컬렉션 찾기
+        # 선택된 위젯 컬렉션 사용
         widget_collection = None
-        widgets_collection = bpy.data.collections.get("Widgets")
-        if widgets_collection:
-            for col in widgets_collection.children:
-                if bone_name in col.name:
-                    widget_collection = col
-                    break
+        if self.widget_collection:
+            widgets_collection = bpy.data.collections.get("Widgets")
+            if widgets_collection:
+                widget_collection = widgets_collection.children.get(self.widget_collection)
                     
         if self.sync_single_bone(context, bone_name, widget_collection):
             self.report({'INFO'}, f"Successfully synced bone: {bone_name}")
@@ -779,6 +797,12 @@ class EDIT_OT_delete_shape_key_bone(Operator, properties.ShapeKeyCommonPropertie
                    context.active_object == context.scene.rigify_rig)
 
     def invoke(self, context, event):
+        # 이전 정보 초기화
+        self.show_confirmation = False
+        self.selected_bones = ""
+        self.selected_collections = ""
+        self.selected_drivers = ""
+
         # 선택된 본들 가져오기
         selected_bones = []
         if context.mode == 'EDIT_ARMATURE':
@@ -790,72 +814,137 @@ class EDIT_OT_delete_shape_key_bone(Operator, properties.ShapeKeyCommonPropertie
             self.report({'ERROR'}, "No bones selected")
             return {'CANCELLED'}
 
-        # 관련 정보 수집
-        collections_info = []
-        drivers_info = []
-        
-        for bone_name in selected_bones:
-            # 위젯 컬렉션 찾기
+        # 선택된 본들 정보 저장
+        self.selected_bones = ",".join(selected_bones)
+
+        # 여러 본이 선택된 경우
+        if len(selected_bones) > 1:
+            self.show_confirmation = True
+            # 관련 정보 수집
+            collections_info = []
+            drivers_info = []
+            
+            for bone_name in selected_bones:
+                # 위젯 컬렉션 찾기
+                widgets_collection = bpy.data.collections.get("Widgets")
+                if widgets_collection and widgets_collection.children:
+                    for col in widgets_collection.children:
+                        if bone_name in col.name:
+                            collections_info.append((bone_name, col.name))
+                            break
+                
+                # 드라이버 찾기
+                if bone_name.startswith("shape_key_ctrl_"):
+                    shape_key_name = bone_name[len("shape_key_ctrl_"):]
+                    for obj in bpy.data.objects:
+                        if obj.type == 'MESH' and obj.data.shape_keys:
+                            for key in obj.data.shape_keys.key_blocks:
+                                if key.name == shape_key_name:
+                                    drivers_info.append((bone_name, obj.name, key.name))
+                                    break
+
+            # 찾은 정보 저장
+            self.selected_collections = ";".join([f"{bone}:{col}" for bone, col in collections_info])
+            self.selected_drivers = ";".join([f"{bone}:{mesh}:{key}" for bone, mesh, key in drivers_info])
+        else:
+            # 단일 본 선택시
+            bone_name = selected_bones[0]
+            
+            # 위젯 컬렉션 초기값 설정
             widgets_collection = bpy.data.collections.get("Widgets")
             if widgets_collection and widgets_collection.children:
                 for col in widgets_collection.children:
                     if bone_name in col.name:
-                        collections_info.append((bone_name, col.name))
+                        self.widget_collection = col.name
                         break
             
-            # 드라이버 찾기
+            # 드라이버 정보 초기값 설정
             if bone_name.startswith("shape_key_ctrl_"):
                 shape_key_name = bone_name[len("shape_key_ctrl_"):]
                 for obj in bpy.data.objects:
                     if obj.type == 'MESH' and obj.data.shape_keys:
                         for key in obj.data.shape_keys.key_blocks:
                             if key.name == shape_key_name:
-                                drivers_info.append((bone_name, obj.name, key.name))
+                                self.target_mesh = obj.name
+                                self.target_shape_key = key.name
                                 break
-
-        # 찾은 정보 저장
-        self.selected_bones = ",".join(selected_bones)
-        self.selected_collections = ";".join([f"{bone}:{col}" for bone, col in collections_info])
-        self.selected_drivers = ";".join([f"{bone}:{mesh}:{key}" for bone, mesh, key in drivers_info])
-        self.show_confirmation = True
+                        if self.target_mesh:
+                            break
 
         return context.window_manager.invoke_props_dialog(self, width=400)
 
     def draw(self, context):
         layout = self.layout
         
-        # 선택된 본들 표시
-        box = layout.box()
-        box.label(text="Selected bones to delete:", icon='BONE_DATA')
-        for bone_name in self.selected_bones.split(","):
+        if self.show_confirmation:
+            # 선택된 본들 표시
+            box = layout.box()
+            box.label(text="Selected bones to delete:", icon='BONE_DATA')
+            for bone_name in self.selected_bones.split(","):
+                row = box.row()
+                row.label(text=bone_name)
+
+            # 삭제될 위젯 컬렉션 표시 (읽기 전용)
+            if self.selected_collections:
+                box = layout.box()
+                box.label(text="Widget collections to delete:", icon='OUTLINER_COLLECTION')
+                for info in self.selected_collections.split(";"):
+                    if info:
+                        bone, col = info.split(":")
+                        row = box.row()
+                        row.label(text=f"{col}")
+
+            # 삭제될 드라이버 표시 (읽기 전용)
+            if self.selected_drivers:
+                box = layout.box()
+                box.label(text="Drivers to delete:", icon='DRIVER')
+                for info in self.selected_drivers.split(";"):
+                    if info:
+                        bone, mesh, key = info.split(":")
+                        row = box.row()
+                        row.label(text=f"{mesh} -> {key}")
+
+            # 옵션
+            row = layout.row()
+            row.label(text="Delete Options:", icon='MODIFIER')
+            row.prop(self, "delete_drivers")
+            row = layout.row()
+            row.prop(self, "delete_collection")
+        else:
+            # 단일 본 선택시의 UI
+            box = layout.box()
+            box.label(text="Selected bone to delete:", icon='BONE_DATA')
             row = box.row()
-            row.label(text=bone_name)
+            row.label(text=self.selected_bones)
 
-        # 삭제될 위젯 컬렉션 표시
-        if self.selected_collections:
+            # 위젯 컬렉션 선택 (사용자 선택 가능)
             box = layout.box()
-            box.label(text="Widget collections to delete:", icon='OUTLINER_COLLECTION')
-            for info in self.selected_collections.split(";"):
-                if info:
-                    bone, col = info.split(":")
-                    row = box.row()
-                    row.label(text=f"{col}")
+            box.label(text="Widget Collection:", icon='OUTLINER_COLLECTION')
+            row = box.row()
+            widgets_collection = bpy.data.collections.get("Widgets")
+            if widgets_collection:
+                row.prop_search(self, "widget_collection", widgets_collection, "children", text="")
+            else:
+                row.label(text="No widget collections found")
 
-        # 삭제될 드라이버 표시
-        if self.selected_drivers:
+            # 메쉬와 쉐이프 키 선택 (사용자 선택 가능)
             box = layout.box()
-            box.label(text="Drivers to delete:", icon='DRIVER')
-            for info in self.selected_drivers.split(";"):
-                if info:
-                    bone, mesh, key = info.split(":")
+            box.label(text="Shape Key Settings:", icon='SHAPEKEY_DATA')
+            row = box.row()
+            row.prop_search(self, "target_mesh", bpy.data, "objects", text="Mesh")
+            if self.target_mesh:
+                mesh_obj = bpy.data.objects.get(self.target_mesh)
+                if mesh_obj and mesh_obj.data.shape_keys:
                     row = box.row()
-                    row.label(text=f"{mesh} -> {key}")
+                    row.prop_search(self, "target_shape_key", mesh_obj.data.shape_keys, "key_blocks", text="Shape Key")
 
-        # 옵션
-        row = layout.row()
-        row.prop(self, "delete_drivers")
-        row = layout.row()
-        row.prop(self, "delete_collection")
+            # 옵션
+            box = layout.box()
+            box.label(text="Delete Options:", icon='MODIFIER')
+            row = box.row()
+            row.prop(self, "delete_drivers")
+            row = box.row()
+            row.prop(self, "delete_collection")
 
         # 경고 메시지
         box = layout.box()
@@ -864,37 +953,67 @@ class EDIT_OT_delete_shape_key_bone(Operator, properties.ShapeKeyCommonPropertie
     def delete_single_bone(self, context, bone_name):
         rigify_rig = context.scene.rigify_rig
         metarig = context.scene.metarig
-            
+        
+        # 현재 모드 저장
+        current_mode = context.mode
+        
+        # EDIT_ARMATURE 모드인 경우 POSE 모드로 전환
+        if current_mode == 'EDIT_ARMATURE':
+            bpy.ops.object.mode_set(mode='POSE')
+                
         try:
             removed_drivers = 0
             removed_objects = 0
 
             # 1. 드라이버 제거
-            if self.delete_drivers and self.selected_drivers:
-                for info in self.selected_drivers.split(";"):
-                    if info:
-                        driver_bone, mesh_name, key_name = info.split(":")
-                        if driver_bone == bone_name:
-                            obj = bpy.data.objects.get(mesh_name)
-                            if obj and obj.data.shape_keys:
-                                shape_keys = obj.data.shape_keys
-                                data_path = f'key_blocks["{key_name}"].value'
-                                shape_keys.driver_remove(data_path)
-                                removed_drivers += 1
-                                obj.active_shape_key_index = 0
+            if self.delete_drivers:
+                # 단일 본 선택 시
+                if not self.show_confirmation:
+                    # 사용자가 선택한 메쉬와 쉐이프 키 사용
+                    obj = bpy.data.objects.get(self.target_mesh)
+                    if obj and obj.data.shape_keys:
+                        shape_keys = obj.data.shape_keys
+                        data_path = f'key_blocks["{self.target_shape_key}"].value'
+                        shape_keys.driver_remove(data_path)
+                        removed_drivers += 1
+                        obj.active_shape_key_index = 0
+                # 다중 본 선택 시
+                elif self.selected_drivers:
+                    for info in self.selected_drivers.split(";"):
+                        if info:
+                            driver_bone, mesh_name, key_name = info.split(":")
+                            if driver_bone == bone_name:
+                                obj = bpy.data.objects.get(mesh_name)
+                                if obj and obj.data.shape_keys:
+                                    shape_keys = obj.data.shape_keys
+                                    data_path = f'key_blocks["{key_name}"].value'
+                                    shape_keys.driver_remove(data_path)
+                                    removed_drivers += 1
+                                    obj.active_shape_key_index = 0
 
             # 2. 위젯 컬렉션 삭제
-            if self.delete_collection and self.selected_collections:
-                for info in self.selected_collections.split(";"):
-                    if info:
-                        col_bone, col_name = info.split(":")
-                        if col_bone == bone_name:
-                            collection = bpy.data.collections.get(col_name)
-                            if collection:
-                                removed_objects = len(collection.objects)
-                                for obj in collection.objects:
-                                    bpy.data.objects.remove(obj, do_unlink=True)
-                                bpy.data.collections.remove(collection)
+            if self.delete_collection:
+                # 단일 본 선택 시
+                if not self.show_confirmation:
+                    # 사용자가 선택한 위젯 컬렉션 사용
+                    collection = bpy.data.collections.get(self.widget_collection)
+                    if collection:
+                        removed_objects = len(collection.objects)
+                        for obj in collection.objects:
+                            bpy.data.objects.remove(obj, do_unlink=True)
+                        bpy.data.collections.remove(collection)
+                # 다중 본 선택 시
+                elif self.selected_collections:
+                    for info in self.selected_collections.split(";"):
+                        if info:
+                            col_bone, col_name = info.split(":")
+                            if col_bone == bone_name:
+                                collection = bpy.data.collections.get(col_name)
+                                if collection:
+                                    removed_objects = len(collection.objects)
+                                    for obj in collection.objects:
+                                        bpy.data.objects.remove(obj, do_unlink=True)
+                                    bpy.data.collections.remove(collection)
 
             # 3. 메타리그의 본 삭제
             # 메타리그 상태 저장
@@ -910,9 +1029,8 @@ class EDIT_OT_delete_shape_key_bone(Operator, properties.ShapeKeyCommonPropertie
                 metarig.hide_set(False)
                 metarig.data.use_mirror_x = False  # 미러 비활성화
                 
-                # 현재 모드와 선택 상태 저장
+                # 현재 선택 상태 저장
                 current_active = context.active_object
-                current_mode = context.mode
                 
                 # 메타리그로 전환
                 bpy.ops.object.mode_set(mode='OBJECT')
@@ -927,8 +1045,7 @@ class EDIT_OT_delete_shape_key_bone(Operator, properties.ShapeKeyCommonPropertie
                 # 원래 상태로 복원
                 bpy.ops.object.mode_set(mode='OBJECT')
                 context.view_layer.objects.active = current_active
-                if current_mode != 'OBJECT':
-                    bpy.ops.object.mode_set(mode=current_mode)
+                bpy.ops.object.mode_set(mode='POSE')
                 
             finally:
                 # 메타리그 상태 복원
@@ -938,15 +1055,12 @@ class EDIT_OT_delete_shape_key_bone(Operator, properties.ShapeKeyCommonPropertie
                 metarig.data.use_mirror_x = was_mirror_x  # 미러 설정 복원
 
             # 4. 리기파이 리그의 본 삭제
-            if context.mode == 'EDIT_ARMATURE':
-                rigify_bone = rigify_rig.data.edit_bones[bone_name]
-                rigify_rig.data.edit_bones.remove(rigify_bone)
-            else:  # POSE
-                # 에딧 모드로 전환하여 본 삭제
-                bpy.ops.object.mode_set(mode='EDIT')
-                rigify_bone = rigify_rig.data.edit_bones[bone_name]
-                rigify_rig.data.edit_bones.remove(rigify_bone)
-                bpy.ops.object.mode_set(mode='POSE')
+            bpy.ops.object.mode_set(mode='EDIT')
+            rigify_bone = rigify_rig.data.edit_bones[bone_name]
+            rigify_rig.data.edit_bones.remove(rigify_bone)
+            
+            # 다시 포즈 모드로 전환
+            bpy.ops.object.mode_set(mode='POSE')
 
             # 결과 메시지 생성
             message = f"Deleted bone: {bone_name}"
@@ -956,6 +1070,7 @@ class EDIT_OT_delete_shape_key_bone(Operator, properties.ShapeKeyCommonPropertie
                 message += f", {removed_objects} widget objects"
             
             self.report({'INFO'}, message)
+                
             return True
 
         except Exception as e:
