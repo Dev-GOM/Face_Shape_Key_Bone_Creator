@@ -28,6 +28,7 @@ bl_info = {
 import bpy
 from . import translations
 from . import utils
+from . import properties
 from . import operators
 from . import panel
 from . import shape_key_utility
@@ -94,6 +95,12 @@ def register():
             name="Enable Auto Sync",
             description="Automatically sync metarig bone with rigify bone",
             default=True
+        )        
+        
+        bpy.types.WindowManager.show_shape_key_adjustments = bpy.props.BoolProperty(
+            name="Show Shape Key Adjustments",
+            description="Show shape key adjustment options",
+            default=True
         )
         
         # Register handlers
@@ -113,6 +120,7 @@ def unregister():
             bpy.app.handlers.depsgraph_update_post.remove(utils.transform_handler)
         
         # Unregister properties
+        del bpy.types.WindowManager.show_shape_key_adjustments
         del bpy.types.Scene.is_sync_enabled
         del bpy.types.Scene.metarig
         del bpy.types.Scene.rigify_rig

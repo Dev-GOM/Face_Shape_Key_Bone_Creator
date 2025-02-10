@@ -206,107 +206,6 @@ def update_driver_expression(driver, value, transform_type, mesh_obj=None):
     if mesh_obj:
         mesh_obj.active_shape_key_index = 0
         
-def sync_bones_and_widgets(context, rigify_bone_name, shape_collection=None, skip_widget_update=False):
-    """
-    메타리그와 리기파이 리그 간의 본 동기화 및 위젯 업데이트를 처리하는 공통 함수
-
-    Args:
-        context: 현재 컨텍스트
-        rigify_bone_name: 리기파이 리그의 본 이름
-        shape_collection: 위젯 오브젝트를 포함하는 컬렉션 (선택사항)
-        skip_widget_update: 위젯 업데이트 건너뛰기 여부 (기본값: False)
-
-    Returns:
-        tuple: (성공 여부, 메시지)
-    """
-    try:
-        rigify_rig = context.scene.rigify_rig
-        metarig = context.scene.metarig
-
-        if not all([rigify_rig, metarig]):
-            return False, "Rigify rig or metarig not found"
-
-        # 1. 본 데이터 가져오기
-        if context.mode == 'EDIT':
-            rigify_bone = rigify_rig.data.edit_bones.get(rigify_bone_name)
-            metarig_bone = metarig.data.edit_bones.get(rigify_bone_name)
-        else:
-            rigify_bone = rigify_rig.pose.bones.get(rigify_bone_name)
-            metarig_bone = metarig.pose.bones.get(rigify_bone_name)
-
-        if not all([rigify_bone, metarig_bone]):
-            return False, f"Bone '{rigify_bone_name}' not found in both rigs"
-
-        # 2. 메타리그 상태 저장
-        was_hidden = metarig.hide_viewport
-        was_hidden_select = metarig.hide_select
-        was_hidden_get = metarig.hide_get()
-
-        try:
-            # 메타리그 활성화
-            metarig.hide_viewport = False
-            metarig.hide_select = False
-            metarig.hide_set(False)
-
-            # 3. 본 트랜스폼 동기화
-            if context.mode == 'EDIT':
-                metarig_bone.head = rigify_bone.head.copy()
-                metarig_bone.tail = rigify_bone.tail.copy()
-                metarig_bone.roll = rigify_bone.roll
-            else:
-                # 포즈 모드에서는 매트릭스 사용
-                metarig_bone.matrix = rigify_bone.matrix.copy()
-
-            # 4. 위젯 업데이트
-            if shape_collection and not skip_widget_update:
-                # 쉐이프 키 찾기
-                shape_key = None
-                for obj in shape_collection.objects:
-                    if obj.name.startswith('WGT_'):
-                        widget_bone_name = obj.name[4:]  # 'WGT_' 제외
-                        for mesh_obj in bpy.data.objects:
-                            if (mesh_obj.type == 'MESH' and 
-                                mesh_obj.data.shape_keys and 
-                                mesh_obj.data.shape_keys.animation_data):
-                                for driver in mesh_obj.data.shape_keys.animation_data.drivers:
-                                    if widget_bone_name in driver.data_path:
-                                        shape_key_name = driver.data_path.split('"')[1]
-                                        shape_key = mesh_obj.data.shape_keys.key_blocks[shape_key_name]
-                                        break
-                                if shape_key:
-                                    break
-                        break
-
-                # 트랜스폼 계산 및 적용
-                bone_matrix = metarig.matrix_world @ metarig.pose.bones[rigify_bone_name].matrix
-                transforms = calculate_widget_transforms(
-                    bone_matrix,
-                    metarig.pose.bones[rigify_bone_name].length,
-                    shape_key
-                )
-
-                # 위젯 오브젝트 업데이트
-                for obj in shape_collection.objects:
-                    if obj.name.startswith('WGT_'):
-                        apply_widget_transforms(obj, transforms, 'WGT')
-                    elif obj.name.startswith('SLIDE_'):
-                        apply_widget_transforms(obj, transforms, 'SLIDE')
-                    elif obj.name.startswith('TEXT_'):
-                        apply_widget_transforms(obj, transforms, 'TEXT')
-
-            return True, "Sync completed successfully"
-
-        finally:
-            # 메타리그 상태 복원
-            metarig.hide_viewport = was_hidden
-            metarig.hide_select = was_hidden_select
-            metarig.hide_set(was_hidden_get)
-
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return False, f"Error during sync: {str(e)}"
-        
 def calculate_widget_base_scales(bone_length):
     """Calculate base scales for widgets based on bone length"""
     return {
@@ -633,15 +532,43 @@ def create_shape_key_text_widget(context, text_name, text_body, bone=None, shape
         traceback.print_exc()
         return None, str(e)
     
+def get_mesh_items(self, context):
+    """메쉬 선택용 아이템 리스트 생성"""
+    return [
+        (obj.name, obj.name, "")
+        for obj in context.scene.objects
+        if obj.type == 'MESH' and obj.data.shape_keys
+    ]
+
+def get_shape_key_items(self, context):
+    """쉐이프 키 선택용 아이템 리스트 생성"""
+    if not self.target_mesh:
+        return []
+    
+    mesh_obj = bpy.data.objects.get(self.target_mesh)
+    if not mesh_obj or not mesh_obj.data.shape_keys:
+        return []
+        
+    return [
+        (sk.name, sk.name, "")
+        for sk in mesh_obj.data.shape_keys.key_blocks[1:]  # Basis 제외
+    ]
+    
 def get_meshes_with_drivers(self, context):
     """드라이버가 있는 메쉬 목록 생성"""
     items = []
     
     # 본 이름 가져오기
+    bone_name = None
     if context.mode == 'EDIT_ARMATURE':
-        bone_name = context.active_bone.name
+        if context.active_bone:
+            bone_name = context.active_bone.name
     else:  # POSE
-        bone_name = context.active_pose_bone.name
+        if context.active_pose_bone:
+            bone_name = context.active_pose_bone.name
+    
+    if not bone_name:
+        return []
     
     # 드라이버가 있는 메쉬 검색
     for obj in context.scene.objects:
@@ -716,11 +643,11 @@ def restore_custom_widgets(armature, stored_widgets):
         bpy.ops.object.mode_set(mode='POSE')
     
     # 본 이름 매핑 생성
-    bone_mapping = {}
-    for new_bone in armature.pose.bones:
-        base_name = new_bone.name.split('.')[0]
-        if base_name in stored_widgets:
-            bone_mapping[base_name] = new_bone.name
+    bone_mapping = {
+        bone.name: bone.name 
+        for bone in armature.pose.bones 
+        if bone.name in stored_widgets
+    }
     
     # 커스텀 위젯과 부모 관계 복원
     for old_bone_name, stored_data in stored_widgets.items():
@@ -822,3 +749,233 @@ def transform_handler(scene):
             
     except Exception as e:
         print(f"Error in transform handler: {str(e)}")
+
+def regenerate_rigify_with_widgets(context):
+    """리기파이 리그 재생성 (위젯 보존)"""
+    try:
+        # 현재 리기파이 리그의 커스텀 위젯 정보 저장
+        rigify_rig = context.scene.rigify_rig
+        stored_widgets = store_custom_widgets(rigify_rig)
+
+        # 오브젝트 모드로 전환
+        bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.select_all(action='DESELECT')
+
+        # 메타리그 선택 및 활성화
+        metarig = context.scene.metarig
+        if not metarig:
+            return False, f"Error Metarig not found"
+
+        metarig.hide_select = False
+        metarig.hide_set(False)
+        metarig.select_set(True)
+        context.view_layer.objects.active = metarig
+        
+        try:
+            # 리기파이 리제네레이트 실행
+            bpy.ops.pose.rigify_generate()
+        except Exception as e:
+            return False, f"Rigify generation failed: {str(e)}"
+
+        # 새로운 리기파이 리그 찾기
+        new_rigify_rig = context.active_object
+
+        # 저장된 커스텀 위젯 정보 복원
+        restore_custom_widgets(new_rigify_rig, stored_widgets)
+
+        # 메타리그 비활성화
+        metarig.hide_select = True
+        metarig.hide_set(True)
+
+        # 리기파이 리그 선택 및 활성화
+        new_rigify_rig.select_set(True)
+        context.view_layer.objects.active = new_rigify_rig
+
+        # 포즈 모드로 전환
+        bpy.ops.object.mode_set(mode='POSE')
+
+        return True, new_rigify_rig
+    except Exception as e:
+        return False, str(e)
+
+def create_shape_key_slider(context, bone, target_mesh, shape_key, custom_text="", use_head_parent=True, multiplier=17.0):
+    """쉐이프 키 슬라이더 생성"""
+    try:
+        # 텍스트 내용 결정
+        text_content = custom_text if custom_text else shape_key
+        
+        # Head 본에 Parent 설정
+        if use_head_parent:
+            rig = context.active_object
+            if "head" in rig.pose.bones:
+                # 현재 모드 저장
+                current_mode = context.mode
+                
+                # Edit 모드로 전환
+                bpy.ops.object.mode_set(mode='EDIT')
+                
+                # Edit Bone의 parent 설정
+                edit_bone = rig.data.edit_bones[bone.name]
+                head_edit_bone = rig.data.edit_bones["head"]
+                edit_bone.parent = head_edit_bone
+                
+                # 원래 모드로 복귀
+                bpy.ops.object.mode_set(mode=current_mode)
+        
+        # 드라이버 설정을 위한 shape key block 가져오기
+        mesh_obj = bpy.data.objects[target_mesh]
+        shape_key_block = mesh_obj.data.shape_keys.key_blocks[shape_key]
+
+        # 위젯 생성 - shape_key_block 전달
+        widget, error = create_shape_key_text_widget(
+            context,
+            f"WGT_{bone.name}",
+            text_content,
+            bone,
+            shape_key_block
+        )
+
+        if not widget:
+            return False, f"Failed to create widget: {error}"
+
+        # 위젯 Head 본에 Child Of 콘스트레인트 추가
+        if use_head_parent:
+            rig = context.active_object
+            if "head" in rig.pose.bones:
+                head_bone = rig.pose.bones["head"]
+                
+                # 위젯 컬렉션의 모든 오브젝트에 콘스트레인트 추가
+                widget_collection = widget.users_collection[0]
+                for obj in widget_collection.objects:
+                    constraint = obj.constraints.new('CHILD_OF')
+                    constraint.target = rig
+                    constraint.subtarget = "head"
+                    constraint.use_scale_x = False
+                    constraint.use_scale_y = False
+                    constraint.use_scale_z = False
+
+        # 드라이버 설정 - 기존 드라이버의 값 사용
+        success, error = setup_shape_key_driver(
+            context.active_object,
+            bone.name,
+            shape_key_block,
+            'LOC_X',
+            multiplier
+        )
+
+        return True, widget
+    except Exception as e:
+        return False, str(e)
+
+def sync_bones_and_widgets(context, rigify_bone_name, widget_collection=None):
+    """메타리그와 리기파이 리그 간의 본 동기화 및 위젯 업데이트를 처리하는 함수"""
+    try:
+        rigify_rig = context.scene.rigify_rig
+        metarig = context.scene.metarig
+        
+        if not all([rigify_rig, metarig]):
+            return False, "Rigify rig or metarig not found"
+
+        # 현재 본과 오브젝트 정보 저장
+        rigify_bone = rigify_rig.data.edit_bones.get(rigify_bone_name)
+        if not rigify_bone:
+            return False, f"Bone '{rigify_bone_name}' not found in rigify rig"
+
+        # 본의 현재 변환값 저장
+        head_pos = rigify_bone.head.copy()
+        tail_pos = rigify_bone.tail.copy()
+        roll_value = rigify_bone.roll
+
+        # 메타리그 상태 저장
+        was_hidden = metarig.hide_viewport
+        was_hidden_select = metarig.hide_select
+        was_hidden_get = metarig.hide_get()
+        was_mirror_x = metarig.data.use_mirror_x  # 미러 설정 저장
+
+        try:
+            # 메타리그 완전히 활성화 및 미러 비활성화
+            metarig.hide_viewport = False
+            metarig.hide_select = False
+            metarig.hide_set(False)
+            metarig.data.use_mirror_x = False  # 미러 비활성화
+
+            # 1. 리기파이 리그에서 오브젝트 모드로 전환
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+            # 2. 메타리그로 전환
+            bpy.ops.object.select_all(action='DESELECT')
+            metarig.select_set(True)
+            context.view_layer.objects.active = metarig
+
+            # 3. 에딧 모드로 전환
+            bpy.ops.object.mode_set(mode='EDIT')
+
+            # 4. 본 트랜스폼 복사
+            metarig_bone = metarig.data.edit_bones.get(rigify_bone_name)
+            if metarig_bone:
+                metarig_bone.head = head_pos
+                metarig_bone.tail = tail_pos
+                metarig_bone.roll = roll_value
+            else:
+                return False, f"Bone {rigify_bone_name} not found in metarig edit_bones"
+
+            # 5. 오브젝트 모드로 전환
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+            # 6. 쉐이프 컬렉션 처리
+            if widget_collection and widget_collection.objects:
+                # 쉐이프 키 찾기
+                shape_key = None
+                for obj in widget_collection.objects:
+                    if obj.name.startswith('WGT_'):
+                        widget_bone_name = obj.name[4:]
+                        for mesh_obj in bpy.data.objects:
+                            if (mesh_obj.type == 'MESH' and 
+                                mesh_obj.data.shape_keys and 
+                                mesh_obj.data.shape_keys.animation_data):
+                                for driver in mesh_obj.data.shape_keys.animation_data.drivers:
+                                    if widget_bone_name in driver.data_path:
+                                        shape_key_name = driver.data_path.split('"')[1]
+                                        shape_key = mesh_obj.data.shape_keys.key_blocks[shape_key_name]
+                                        break
+                            if shape_key:
+                                break
+                        break
+
+                # 트랜스폼 계산
+                bone_matrix = metarig.matrix_world @ metarig.pose.bones[rigify_bone_name].matrix
+                transforms = calculate_widget_transforms(
+                    bone_matrix,
+                    metarig.pose.bones[rigify_bone_name].length,
+                    shape_key
+                )
+
+                # 위젯 오브젝트에 적용
+                for obj in widget_collection.objects:
+                    if obj.name.startswith('TEXT_'):
+                        apply_widget_transforms(obj, transforms, 'TEXT')
+                    elif obj.name.startswith('SLIDE_'):
+                        apply_widget_transforms(obj, transforms, 'SLIDE')
+                    elif obj.name.startswith('WGT_'):
+                        apply_widget_transforms(obj, transforms, 'WGT')
+
+            # 7. 리기파이 리그로 돌아가기
+            bpy.ops.object.select_all(action='DESELECT')
+            rigify_rig.select_set(True)
+            context.view_layer.objects.active = rigify_rig
+            bpy.ops.object.mode_set(mode='EDIT')
+
+            return True, "Sync completed successfully"
+
+        finally:
+            # 메타리그 상태 복원
+            metarig.hide_viewport = was_hidden
+            metarig.hide_select = was_hidden_select
+            metarig.hide_set(was_hidden_get)
+            metarig.data.use_mirror_x = was_mirror_x  # 미러 설정 복원
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return False, f"Error during sync: {str(e)}"
+    

@@ -140,7 +140,7 @@ ko_KR = {
     ("*", "No matching bone found in metarig"): "메타리그에서 일치하는 본을 찾을 수 없습니다",
     ("*", "Error syncing bones"): "본 동기화 중 오류 발생",
     ("*", "Parent to Head"): "헤드 본에 페어런트",
-    ("*", "Add Child Of constraint to Rigify head bone"): "리기파이 헤드 본에 차일드 오브 콘스트레인트 추가",
+    ("*", "Add parent to Rigify head bone"): "리기파이 헤드 본에 부모 추가",
     ("*", "Delete Widget Collection"): "위젯 컬렉션 삭제",
     ("*", "Delete associated widget collection"): "관련된 위젯 컬렉션 삭제",
     ("*", "Delete Shape Key Drivers"): "쉐이프 키 드라이버 삭제",
@@ -214,6 +214,9 @@ ko_KR = {
     ("*", "Random Strength"): "무작위 강도",
     ("*", "Min Value"): "최소값",
     ("*", "Max Value"): "최대값",
+    ("*", "Create All Shape Key Bones"): "모든 쉐이프 키 본 생성",
+    ("*", "Space between bones"): "본 사이 간격",
+    ("*", "Create text widgets for each bone"): "각 본에 대한 텍스트 위젯 생성",
 }
 
 # 일본어 번역
@@ -358,7 +361,7 @@ ja_JP = {
     ("*", "No matching bone found in metarig"): "メタリグに一致するボーンが見つかりません",
     ("*", "Error syncing bones"): "ボーンの同期中にエラーが発生しました",
     ("*", "Parent to Head"): "ヘッドボーンにペアレント",
-    ("*", "Add Child Of constraint to Rigify head bone"): "Rigifyヘッドボーンにチャイルドオブコンストレイントを追加",
+    ("*", "Add parent to Rigify head bone"): "Rigifyヘッドボーンに親を追加",
     ("*", "Delete Widget Collection"): "ウィジェットコレクションを削除",
     ("*", "Delete associated widget collection"): "関連するウィジェットコレクションを削除",
     ("*", "Delete Shape Key Drivers"): "シェイプキードライバーを削除",
@@ -562,7 +565,7 @@ zh_CN = {
     ("*", "No matching bone found in metarig"): "在元骨架中找不到匹配的骨骼",
     ("*", "Error syncing bones"): "同步骨骼时出错",
     ("*", "Parent to Head"): "父级至头部骨骼",
-    ("*", "Add Child Of constraint to Rigify head bone"): "添加子级约束到Rigify头部骨骼",
+    ("*", "Add parent to Rigify head bone"): "将父级添加到Rigify头部骨骼",
     ("*", "Delete Widget Collection"): "删除部件集合",
     ("*", "Delete associated widget collection"): "删除相关的部件集合",
     ("*", "Delete Shape Key Drivers"): "删除形态键驱动器",

@@ -1,6 +1,8 @@
 import bpy
 import math
 import mathutils
+
+from . import properties
 from . import utils
 from bpy.types import Panel, Operator
 from bpy.props import EnumProperty, StringProperty, BoolProperty, FloatProperty
@@ -124,6 +126,18 @@ class SHAPEKEY_PT_tools_creator(Panel):
             row.operator("object.add_shape_key_bone", 
                         text="Add Shape Key Bone", 
                            icon='BONE_DATA')
+                
+        if (context.mode == 'EDIT_ARMATURE' and
+            context.active_object and
+            context.active_object.type == 'ARMATURE' and
+            context.active_bone and context.active_object == context.scene.rigify_rig):
+            
+            box = layout.box()
+            box.label(text="Batch Operations:", icon='ARMATURE_DATA')
+            row = box.row()
+            row.operator("object.create_multiple_shape_key_bones",
+                        text="Create All Shape Key Bones",
+                        icon='BONE_DATA')
         
         # 본 삭제 버튼 (에딧 모드나 포즈 모드에서 리기파이 본이 선택된 경우에만 표시)
         if context.mode in {'EDIT_ARMATURE', 'POSE'}:
@@ -297,31 +311,12 @@ class SHAPE_OT_adjust_driver_value(Operator):
         # 슬라이더 UI
         layout.prop(self, "value", slider=True)
     
-class OBJECT_OT_create_shape_key_slider(Operator):
+class OBJECT_OT_create_shape_key_slider(Operator, properties.ShapeKeyCommonProperties):
     """Create a new slider for shape key control"""
     bl_idname = "object.create_shape_key_slider"
     bl_label = "Create Shape Key Slider"
     bl_description = "Create a new slider for shape key control"
     bl_options = {'REGISTER', 'UNDO'}
-    
-    target_mesh: EnumProperty(
-        name="Target Mesh",
-        description="Select mesh containing shape keys",
-        items=lambda self, context: [
-            (obj.name, obj.name, "")
-            for obj in context.scene.objects
-            if obj.type == 'MESH' and obj.data.shape_keys
-        ]
-    ) # type: ignore
-    
-    shape_key: EnumProperty(
-        name="Shape Key",
-        description="Select shape key to control",
-        items=lambda self, context: [
-            (sk.name, sk.name, "")
-            for sk in bpy.data.objects.get(self.target_mesh, None).data.shape_keys.key_blocks[1:]
-        ] if self.target_mesh and bpy.data.objects.get(self.target_mesh).data.shape_keys else []
-    ) # type: ignore
     
     custom_text: StringProperty(
         name="Custom Text",
@@ -329,9 +324,9 @@ class OBJECT_OT_create_shape_key_slider(Operator):
         default=""
     ) # type: ignore
 
-    use_head_constraint: BoolProperty(
+    use_head_parent: BoolProperty(
         name="Parent to Head",
-        description="Add Child Of constraint to Rigify head bone",
+        description="Add parent to Rigify head bone",
         default=False
     ) # type: ignore
     
@@ -347,13 +342,13 @@ class OBJECT_OT_create_shape_key_slider(Operator):
         layout = self.layout
         layout.prop(self, "target_mesh")
         if self.target_mesh:
-            layout.prop(self, "shape_key")
-            if self.shape_key:
+            layout.prop(self, "target_shape_key")
+            if self.target_shape_key:
                 layout.prop(self, "custom_text")
-        layout.prop(self, "use_head_constraint")
+        layout.prop(self, "use_head_parent")
     
     def execute(self, context):
-        if not self.target_mesh or not self.shape_key:
+        if not self.target_mesh or not self.target_shape_key:
             self.report({'ERROR'}, "Please select both mesh and shape key")
             return {'CANCELLED'}
         
@@ -362,36 +357,14 @@ class OBJECT_OT_create_shape_key_slider(Operator):
             self.report({'ERROR'}, "No active pose bone")
             return {'CANCELLED'}
         
-        # 텍스트 내용 결정
-        text_content = self.custom_text if self.custom_text else self.shape_key
-        
-        # Head 본에 Parent 설정
-        if self.use_head_constraint:
-            rig = context.active_object
-            if "head" in rig.pose.bones:
-                # 현재 모드 저장
-                current_mode = context.mode
-                
-                # Edit 모드로 전환
-                bpy.ops.object.mode_set(mode='EDIT')
-                
-                # Edit Bone의 parent 설정
-                edit_bone = rig.data.edit_bones[bone.name]
-                head_edit_bone = rig.data.edit_bones["head"]
-                edit_bone.parent = head_edit_bone
-                
-                # 원래 모드로 복귀
-                bpy.ops.object.mode_set(mode=current_mode)
-        
-        # 드라이버 설정을 위한 shape key block 가져오기
+        # 기존 드라이버의 값 찾기
         mesh_obj = bpy.data.objects[self.target_mesh]
-        shape_key_block = mesh_obj.data.shape_keys.key_blocks[self.shape_key]
+        shape_key = mesh_obj.data.shape_keys.key_blocks.get(self.target_shape_key)
+        current_value = 30.0 # 기본값
 
-        # 기존 드라이버의 값 가져오기
-        current_value = 3.0  # 기본값
-        if shape_key_block.id_data.animation_data:
-            for driver in shape_key_block.id_data.animation_data.drivers:
-                if driver.data_path == f'key_blocks["{shape_key_block.name}"].value':
+        if shape_key and shape_key.id_data.animation_data:
+            for driver in shape_key.id_data.animation_data.drivers:
+                if driver.data_path == f'key_blocks["{shape_key.name}"].value':
                     var = driver.driver.variables[0]
                     transform_type = var.targets[0].transform_type
                     try:
@@ -404,42 +377,15 @@ class OBJECT_OT_create_shape_key_slider(Operator):
                     except:
                         pass
                     break
-
-        # 위젯 생성 - shape_key_block 전달
-        widget, error = utils.create_shape_key_text_widget(
+        
+        success, error = utils.create_shape_key_slider(
             context,
-            f"WGT_{bone.name}",
-            text_content,
-            bone,
-            shape_key_block
-        )
-
-        if not widget:
-            self.report({'ERROR'}, f"Failed to create widget: {error}")
-            return {'CANCELLED'}
-
-        # Head 본에 콘스트레인트 추가
-        if self.use_head_constraint:
-            if "head" in rig.pose.bones:
-                head_bone = rig.pose.bones["head"]
-                
-                # 위젯 컬렉션의 모든 오브젝트에 콘스트레인트 추가
-                widget_collection = widget.users_collection[0]
-                for obj in widget_collection.objects:
-                    constraint = obj.constraints.new('CHILD_OF')
-                    constraint.target = rig
-                    constraint.subtarget = "head"
-                    constraint.use_scale_x = False
-                    constraint.use_scale_y = False
-                    constraint.use_scale_z = False
-
-        # 드라이버 설정 - 기존 드라이버의 값 사용
-        success, error = utils.setup_shape_key_driver(
-            context.active_object,
-            bone.name,
-            shape_key_block,
-            'LOC_X',
-            current_value
+            context.active_pose_bone,
+            self.target_mesh,
+            self.target_shape_key,
+            custom_text=self.custom_text,
+            use_head_parent=self.use_head_parent,
+            multiplier=current_value
         )
 
         if not success:
