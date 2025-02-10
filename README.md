@@ -6,7 +6,7 @@
 Shape Key Bone Control Creator is a Blender add-on that helps you visualize and control shape keys through bone-based sliders.
 </code>
 
-![Regeneration Button](./images/regeneration_button.png)
+![ShapeKeyTool_v1.2.1](./images/ShapeKeyTool_v1.2.1.gif)
 
 ## 📺 Video Tutorials / 비디오 튜토리얼 / ビデオチュートリアル / 视频教程
 
