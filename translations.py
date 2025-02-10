@@ -217,6 +217,16 @@ ko_KR = {
     ("*", "Create All Shape Key Bones"): "모든 쉐이프 키 본 생성",
     ("*", "Space between bones"): "본 사이 간격",
     ("*", "Create text widgets for each bone"): "각 본에 대한 텍스트 위젯 생성",
+    ("*", "Selected Bones"): "선택된 본",
+    ("*", "List of selected bones"): "선택된 본 목록",
+    ("*", "Collections to Delete"): "삭제할 컬렉션",
+    ("*", "List of widget collections"): "위젯 컬렉션 목록",
+    ("*", "Drivers to Delete"): "삭제할 드라이버",
+    ("*", "List of drivers"): "드라이버 목록",
+    ("*", "Show Confirmation"): "확인 대화상자 표시",
+    ("*", "Show confirmation dialog"): "확인 대화상자 표시",
+    ("*", "Name of the new bone (editable)"): "새 본의 이름 (수정 가능)",
+    ("*", "Suggested name based on shape key"): "쉐이프 키 기반 추천 이름",
 }
 
 # 일본어 번역
@@ -421,6 +431,16 @@ ja_JP = {
     ("*", "Random Strength"): "ランダム強度",
     ("*", "Min Value"): "最小値",
     ("*", "Max Value"): "最大値",
+    ("*", "Selected Bones"): "選択されたボーン",
+    ("*", "List of selected bones"): "選択されたボーンのリスト",
+    ("*", "Collections to Delete"): "削除するコレクション",
+    ("*", "List of widget collections"): "ウィジェットコレクションのリスト",
+    ("*", "Drivers to Delete"): "削除するドライバー",
+    ("*", "List of drivers"): "ドライバーのリスト",
+    ("*", "Show Confirmation"): "確認ダイアログを表示",
+    ("*", "Show confirmation dialog"): "確認ダイアログを表示",
+    ("*", "Name of the new bone (editable)"): "新しいボーンの名前（編集可能）",
+    ("*", "Suggested name based on shape key"): "シェイプキーに基づく推奨名",
 }
 
 # 중국어 번역
@@ -625,6 +645,16 @@ zh_CN = {
     ("*", "Random Strength"): "随机强度",
     ("*", "Min Value"): "最小值",
     ("*", "Max Value"): "最大值",
+    ("*", "Selected Bones"): "已选择的骨骼",
+    ("*", "List of selected bones"): "已选择骨骼列表",
+    ("*", "Collections to Delete"): "要删除的集合",
+    ("*", "List of widget collections"): "部件集合列表",
+    ("*", "Drivers to Delete"): "要删除的驱动器",
+    ("*", "List of drivers"): "驱动器列表",
+    ("*", "Show Confirmation"): "显示确认对话框",
+    ("*", "Show confirmation dialog"): "显示确认对话框",
+    ("*", "Name of the new bone (editable)"): "新骨骼的名称（可编辑）",
+    ("*", "Suggested name based on shape key"): "基于形态键的建议名称",
 }
 
 # 전체 번역 딕셔너리

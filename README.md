@@ -24,6 +24,170 @@ Shape Key Bone Control Creator is a Blender add-on that helps you visualize and 
 ## Version History / 버전 기록 / バージョン履歴 / 版本历史
 
 <details>
+<summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.2.1 (2025-02-10)</code></summary>
+
+<details>
+<summary><code style="color: #28a745;">🇺🇸 English</code></summary>
+
+**Multi-Bone Operation Enhancement**
+- Add comprehensive multi-bone management system
+  - Add batch deletion functionality
+  - Add multiple bone synchronization
+  - Improve parent-child relationship handling
+  - Add state preservation during operations
+- Implement advanced bone management
+  - Add widget collection handling
+  - Add driver synchronization
+  - Add transform preservation
+  - Add mirror settings management
+
+**System Optimization**
+- Enhanced code structure
+  - Consolidate duplicate code
+  - Centralize utility functions
+  - Improve error handling system
+  - Add comprehensive state management
+- Streamlined operations
+  - Add batch processing capabilities
+  - Optimize synchronization process
+  - Improve widget management
+  - Enhance driver handling
+
+**Performance Improvements**
+- Optimize multi-bone operations
+- Remove redundant processes
+- Improve memory efficiency
+- Enhance processing speed
+
+**Bug Fixes**
+- Fix bone synchronization issues
+- Improve widget transformation accuracy
+- Enhance operation stability
+- Fix state preservation problems
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇰🇷 한글</code></summary>
+
+**다중 본 작업 강화**
+- 포괄적인 다중 본 관리 시스템 추가
+  - 일괄 삭제 기능 추가
+  - 다중 본 동기화 추가
+  - 부모-자식 관계 처리 개선
+  - 작업 중 상태 보존 추가
+- 고급 본 관리 구현
+  - 위젯 컬렉션 처리 추가
+  - 드라이버 동기화 추가
+  - 트랜스폼 보존 추가
+  - 미러 설정 관리 추가
+
+**시스템 최적화**
+- 코드 구조 강화
+  - 중복 코드 통합
+  - 유틸리티 함수 중앙화
+  - 오류 처리 시스템 개선
+  - 포괄적인 상태 관리 추가
+- 작업 프로세스 개선
+  - 일괄 처리 기능 추가
+  - 동기화 프로세스 최적화
+  - 위젯 관리 개선
+  - 드라이버 처리 강화
+
+**성능 개선**
+- 다중 본 작업 최적화
+- 중복 프로세스 제거
+- 메모리 효율성 개선
+- 처리 속도 향상
+
+**버그 수정**
+- 본 동기화 문제 수정
+- 위젯 변환 정확도 개선
+- 작업 안정성 강화
+- 상태 보존 문제 수정
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇯🇵 日本語</code></summary>
+
+**マルチボーン操作の強化**
+- 包括的なマルチボーン管理システムの追加
+  - 一括削除機能の追加
+  - 複数ボーンの同期追加
+  - 親子関係の処理改善
+  - 操作中の状態保持追加
+- 高度なボーン管理の実装
+  - ウィジェットコレクション処理の追加
+  - ドライバー同期の追加
+  - トランスフォーム保持の追加
+  - ミラー設定管理の追加
+
+**システム最適化**
+- コード構造の強化
+  - 重複コードの統合
+  - ユーティリティ関数の一元化
+  - エラー処理システムの改善
+  - 包括的な状態管理の追加
+- 作業プロセスの改善
+  - バッチ処理機能の追加
+  - 同期プロセスの最適化
+  - ウィジェット管理の改善
+  - ドライバー処理の強化
+
+**パフォーマンス改善**
+- マルチボーン操作の最適化
+- 重複プロセスの削除
+- メモリ効率の改善
+- 処理速度の向上
+
+**バグ修正**
+- ボーン同期の問題を修正
+- ウィジェット変換精度の改善
+- 操作安定性の強化
+- 状態保持の問題修正
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇨🇳 中文</code></summary>
+
+**多骨骼操作增强**
+- 添加全面的多骨骼管理系统
+  - 添加批量删除功能
+  - 添加多骨骼同步
+  - 改进父子关系处理
+  - 添加操作期间状态保持
+- 实现高级骨骼管理
+  - 添加部件集合处理
+  - 添加驱动器同步
+  - 添加变换保持
+  - 添加镜像设置管理
+
+**系统优化**
+- 增强代码结构
+  - 合并重复代码
+  - 集中实用函数
+  - 改进错误处理系统
+  - 添加全面状态管理
+- 改进工作流程
+  - 添加批处理功能
+  - 优化同步流程
+  - 改进部件管理
+  - 增强驱动器处理
+
+**性能改进**
+- 优化多骨骼操作
+- 删除冗余流程
+- 改进内存效率
+- 提高处理速度
+
+**错误修复**
+- 修复骨骼同步问题
+- 改进部件变换精度
+- 增强操作稳定性
+- 修复状态保持问题
+</details>
+</details>
+
+<details>
 <summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.2.0 (2025-02-09)</code></summary>
 
 <details>
