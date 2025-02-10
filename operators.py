@@ -605,13 +605,26 @@ class EDIT_OT_sync_metarig_bone(Operator, properties.ShapeKeyCommonProperties):
     bl_idname = "edit.sync_metarig_bone"
     bl_label = "Sync with Metarig"
     bl_options = {'REGISTER', 'UNDO'}
+    
+    def sync_single_bone(self, context, bone_name, widget_collection=None):
+        """단일 본 동기화 처리"""
+        try:
+            # 본 동기화 실행
+            success, message = utils.sync_bones_and_widgets(
+                context,
+                bone_name,
+                widget_collection
+            )
 
-    @classmethod
-    def poll(cls, context):
-        return (context.mode == 'EDIT_ARMATURE' and 
-                context.scene.metarig and 
-                context.scene.rigify_rig and
-                context.active_object == context.scene.rigify_rig)    
+            if not success:
+                self.report({'WARNING'}, f"Error syncing bone {bone_name}: {message}")
+                return False
+
+            return True
+
+        except Exception as e:
+            self.report({'WARNING'}, f"Error syncing bone {bone_name}: {str(e)}")
+            return False
 
     def invoke(self, context, event):
         # 선택된 본들 가져오기
@@ -627,35 +640,6 @@ class EDIT_OT_sync_metarig_bone(Operator, properties.ShapeKeyCommonProperties):
         # 여러 본이 선택된 경우
         if len(selected_bones) > 1:
             self.show_confirmation = True
-            
-            # 선택된 모든 본에 대한 정보 수집
-            self.bone_info = []
-            for bone_name in selected_bones:
-                info = {'bone_name': bone_name}
-                
-                # 위젯 컬렉션 찾기
-                widgets_collection = bpy.data.collections.get("Widgets")
-                if widgets_collection:
-                    for col in widgets_collection.children:
-                        if bone_name in col.name:
-                            info['widget_collection'] = col
-                            break
-                
-                # 메쉬와 쉐이프 키 찾기
-                if bone_name.startswith("shape_key_ctrl_"):
-                    shape_key_name = bone_name[len("shape_key_ctrl_"):]
-                    for obj in bpy.data.objects:
-                        if obj.type == 'MESH' and obj.data.shape_keys:
-                            for key in obj.data.shape_keys.key_blocks:
-                                if key.name == shape_key_name:
-                                    info['mesh'] = obj.name
-                                    info['shape_key'] = key.name
-                                    break
-                            if 'mesh' in info:
-                                break
-                
-                self.bone_info.append(info)
-            
             return context.window_manager.invoke_props_dialog(self, width=400)
         
         # 단일 본 선택시
@@ -683,9 +667,36 @@ class EDIT_OT_sync_metarig_bone(Operator, properties.ShapeKeyCommonProperties):
             # 여러 본이 선택된 경우의 UI
             box = layout.box()
             box.label(text="Selected bones to sync:", icon='BONE_DATA')
+            
+            # 선택된 본들 표시
             for bone_name in self.selected_bones.split(","):
+                box = layout.box()
                 row = box.row()
                 row.label(text=bone_name)
+
+                # 위젯 컬렉션 정보
+                widgets_collection = bpy.data.collections.get("Widgets")
+                if widgets_collection:
+                    for col in widgets_collection.children:
+                        if bone_name in col.name:
+                            row = box.row()
+                            row.label(text=f"Widget: {col.name}")
+                            break
+
+                # 쉐이프 키 정보
+                if bone_name.startswith("shape_key_ctrl_"):
+                    shape_key_name = bone_name[len("shape_key_ctrl_"):]
+                    for obj in bpy.data.objects:
+                        if obj.type == 'MESH' and obj.data.shape_keys:
+                            for key in obj.data.shape_keys.key_blocks:
+                                if key.name == shape_key_name:
+                                    row = box.row()
+                                    row.label(text=f"Mesh: {obj.name}")
+                                    row = box.row()
+                                    row.label(text=f"Shape Key: {key.name}")
+                                    break
+                            if 'mesh' in locals():
+                                break
 
             # 경고 메시지
             box = layout.box()
@@ -709,36 +720,24 @@ class EDIT_OT_sync_metarig_bone(Operator, properties.ShapeKeyCommonProperties):
             row.label(text="Selected Bone:")
             row.label(text=context.active_bone.name)
 
-    def sync_single_bone(self, context, bone_name, widget_collection=None):
-        """단일 본 동기화 처리"""
-        try:
-            # 본 동기화 실행
-            success, message = utils.sync_bones_and_widgets(
-                context,
-                bone_name,
-                widget_collection
-            )
-
-            if not success:
-                self.report({'WARNING'}, f"Error syncing bone {bone_name}: {message}")
-                return False
-
-            return True
-
-        except Exception as e:
-            self.report({'WARNING'}, f"Error syncing bone {bone_name}: {str(e)}")
-            return False
-
     def execute(self, context):
         # 여러 본이 선택된 경우
         if self.show_confirmation:
             success_count = 0
-            for info in self.bone_info:
-                widget_collection = info.get('widget_collection')
-                if self.sync_single_bone(context, info['bone_name'], widget_collection):
+            for bone_name in self.selected_bones.split(","):
+                # 위젯 컬렉션 찾기
+                widget_collection = None
+                widgets_collection = bpy.data.collections.get("Widgets")
+                if widgets_collection:
+                    for col in widgets_collection.children:
+                        if bone_name in col.name:
+                            widget_collection = col
+                            break
+                
+                if self.sync_single_bone(context, bone_name, widget_collection):
                     success_count += 1
             
-            self.report({'INFO'}, f"Successfully synced {success_count} of {len(self.bone_info)} bones")
+            self.report({'INFO'}, f"Successfully synced {success_count} of {len(self.selected_bones.split(','))} bones")
             return {'FINISHED'}
         
         # 단일 본 선택시
