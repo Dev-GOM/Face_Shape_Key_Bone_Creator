@@ -26,7 +26,7 @@ Shape Key Bone Control Creator is a Blender add-on that helps you visualize and 
 ## Version History / 버전 기록 / バージョン履歴 / 版本历史
 
 <details>
-<summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.2.2 (2025-02-10)</code></summary>
+<summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.2.3 (2025-02-10)</code></summary>
 
 <details>
 <summary><code style="color: #28a745;">🇺🇸 English</code></summary>
