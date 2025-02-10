@@ -26,6 +26,106 @@ Shape Key Bone Control Creator is a Blender add-on that helps you visualize and 
 ## Version History / 버전 기록 / バージョン履歴 / 版本历史
 
 <details>
+<summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.2.4 (2025-02-10)</code></summary>
+
+<details>
+<summary><code style="color: #28a745;">🇺🇸 English</code></summary>
+
+**Shape Key Range Support Enhancement**
+- Add support for custom shape key ranges
+  - Fix synchronization for non-standard ranges
+  - Add proper slider positioning
+  - Improve range detection
+- Enhance widget transformation handling
+  - Fix offset calculations
+  - Add value range normalization
+  - Improve widget positioning accuracy
+
+**System Improvements**
+- Add automatic range detection
+- Improve sync operation reliability
+- Enhance widget transformation precision
+
+**Bug Fixes**
+- Fix slider position for custom ranges
+- Fix widget sync with negative values
+- Fix transformation calculations
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇰🇷 한글</code></summary>
+
+**쉐이프 키 범위 지원 강화**
+- 사용자 정의 쉐이프 키 범위 지원 추가
+  - 비표준 범위 동기화 수정
+  - 슬라이더 위치 지정 개선
+  - 범위 감지 기능 추가
+- 위젯 변환 처리 강화
+  - 오프셋 계산 수정
+  - 값 범위 정규화 추가
+  - 위젯 위치 정확도 향상
+
+**시스템 개선**
+- 자동 범위 감지 추가
+- 동기화 작업 안정성 향상
+- 위젯 변환 정밀도 개선
+
+**버그 수정**
+- 사용자 정의 범위의 슬라이더 위치 수정
+- 음수 값 위젯 동기화 수정
+- 변환 계산 수정
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇯🇵 日本語</code></summary>
+
+**シェイプキー範囲サポートの強化**
+- カスタムシェイプキー範囲のサポート追加
+  - 非標準範囲の同期を修正
+  - スライダー位置の設定を改善
+  - 範囲検出機能を追加
+- ウィジェット変換処理の強化
+  - オフセット計算の修正
+  - 値範囲の正規化を追加
+  - ウィジェット位置の精度向上
+
+**システム改善**
+- 自動範囲検出の追加
+- 同期操作の信頼性向上
+- ウィジェット変換の精度改善
+
+**バグ修正**
+- カスタム範囲のスライダー位置を修正
+- 負の値のウィジェット同期を修正
+- 変換計算を修正
+</details>
+
+<details>
+<summary><code style="color: #28a745;">🇨🇳 中文</code></summary>
+
+**形态键范围支持增强**
+- 添加自定义形态键范围支持
+  - 修复非标准范围同步
+  - 改进滑块位置设置
+  - 添加范围检测功能
+- 增强部件变换处理
+  - 修复偏移计算
+  - 添加值范围标准化
+  - 提高部件位置精确度
+
+**系统改进**
+- 添加自动范围检测
+- 提高同步操作可靠性
+- 增强部件变换精度
+
+**错误修复**
+- 修复自定义范围的滑块位置
+- 修复负值部件同步
+- 修复变换计算
+</details>
+</details>
+
+<details>
 <summary><code style="color: #0366d6; font-size: 1.1em;">📌 v1.2.3 (2025-02-10)</code></summary>
 
 <details>

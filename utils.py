@@ -924,30 +924,29 @@ def sync_bones_and_widgets(context, rigify_bone_name, widget_collection=None):
 
             # 6. 쉐이프 컬렉션 처리
             if widget_collection and widget_collection.objects:
-                # 쉐이프 키 찾기
-                shape_key = None
-                for obj in widget_collection.objects:
-                    if obj.name.startswith('WGT_'):
-                        widget_bone_name = obj.name[4:]
-                        for mesh_obj in bpy.data.objects:
-                            if (mesh_obj.type == 'MESH' and 
-                                mesh_obj.data.shape_keys and 
-                                mesh_obj.data.shape_keys.animation_data):
-                                for driver in mesh_obj.data.shape_keys.animation_data.drivers:
-                                    if widget_bone_name in driver.data_path:
-                                        shape_key_name = driver.data_path.split('"')[1]
-                                        shape_key = mesh_obj.data.shape_keys.key_blocks[shape_key_name]
-                                        break
-                            if shape_key:
+                # 실제 쉐이프 키 찾기
+                actual_shape_key = None
+                
+                # 본 이름에서 쉐이프 키 이름 추출
+                if rigify_bone_name.startswith("shape_key_ctrl_"):
+                    shape_key_name = rigify_bone_name[len("shape_key_ctrl_"):]
+                    
+                    # 모든 메쉬 오브젝트에서 쉐이프 키 찾기
+                    for obj in bpy.data.objects:
+                        if obj.type == 'MESH' and obj.data.shape_keys:
+                            for key in obj.data.shape_keys.key_blocks:
+                                if key.name == shape_key_name:
+                                    actual_shape_key = key
+                                    break
+                            if actual_shape_key:
                                 break
-                        break
 
                 # 트랜스폼 계산
                 bone_matrix = metarig.matrix_world @ metarig.pose.bones[rigify_bone_name].matrix
                 transforms = calculate_widget_transforms(
                     bone_matrix,
                     metarig.pose.bones[rigify_bone_name].length,
-                    shape_key
+                    actual_shape_key
                 )
 
                 # 위젯 오브젝트에 적용
